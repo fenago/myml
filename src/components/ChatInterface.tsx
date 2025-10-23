@@ -16,6 +16,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { ContextIndicator } from './microinteractions/ContextIndicator';
 import { useKonamiCode } from '../hooks/useKonamiCode';
 import { applyTheme, getThemeByCommand, getThemeById, resetTheme, loadSavedTheme } from '../config/themes';
+import { MilestoneCelebration } from './MilestoneCelebration';
 
 // Lazy load Settings for better initial load performance
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
@@ -551,6 +552,11 @@ export function ChatInterface({ onSendMessage }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Milestone Celebration */}
+      {settings.easterEggs.messageMilestones && currentConversation && (
+        <MilestoneCelebration messageCount={currentConversation.messages.length} />
+      )}
     </div>
   );
 }
