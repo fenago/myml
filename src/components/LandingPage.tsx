@@ -3,9 +3,7 @@
  * MyML.app by Dr. Ernesto Lee
  */
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { getAvailableModels } from '../config/models';
 import { useStore } from '../store/useStore';
 import { TextShimmer } from './TextShimmer';
 

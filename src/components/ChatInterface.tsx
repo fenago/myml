@@ -21,7 +21,7 @@ interface Props {
   onChangeModel?: () => void;
 }
 
-export function ChatInterface({ onSendMessage, onChangeModel }: Props) {
+export function ChatInterface({ onSendMessage }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentConversationId, conversations, isGenerating, currentModelId, settings } = useStore();
   const [showSettings, setShowSettings] = useState(false);

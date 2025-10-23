@@ -4,12 +4,11 @@
  * @author Dr. Ernesto Lee
  */
 
-import { CSSProperties, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
   className?: string;
-  shimmerWidth?: number;
   duration?: number;
   as?: 'h1' | 'h2' | 'h3' | 'p' | 'span' | 'div';
 }
@@ -17,7 +16,6 @@ interface Props {
 export function TextShimmer({
   children,
   className = '',
-  shimmerWidth = 100,
   duration = 2,
   as: Component = 'p',
 }: Props) {

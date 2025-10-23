@@ -22,7 +22,6 @@ export function ChatMessage({ message }: Props) {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const metadata = message.metadata || {};
-  const hasMetadata = Object.keys(metadata).length > 0 || message.tokensPerSecond;
 
   // Build metadata sections based on settings
   const metadataSections: { label: string; items: { key: string; value: string }[] }[] = [];

@@ -12,9 +12,10 @@ import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { getModelConfig } from '../config/models';
 import { AuroraBackground } from './AuroraBackground';
+import type { MultimodalInput } from './ChatInput';
 
 interface Props {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (input: MultimodalInput) => void;
   onChangeModel?: () => void;
 }
 
@@ -157,7 +158,7 @@ export function ChatInterfaceNew({ onSendMessage, onChangeModel }: Props) {
                       transition={{ delay: 0.6 + index * 0.1 }}
                       whileHover={{ scale: 1.02, x: 4 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => onSendMessage(prompt.substring(4))}
+                      onClick={() => onSendMessage({ text: prompt.substring(4) })}
                       className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/70 hover:text-white text-left transition-all duration-200"
                     >
                       {prompt}

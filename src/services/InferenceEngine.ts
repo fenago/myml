@@ -84,7 +84,6 @@ export class InferenceEngine {
       const formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model\n`;
 
       const startTime = Date.now();
-      let firstTokenTime: number | null = null;
       let response = '';
 
       // Generate response

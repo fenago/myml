@@ -21,7 +21,6 @@ export interface VoiceSettings {
 export class VoiceService {
   private recognition: any = null;
   private synthesis: SpeechSynthesis | null = null;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
   private isListening = false;
 
   constructor() {
@@ -155,17 +154,14 @@ export class VoiceService {
 
     // Event handlers
     utterance.onend = () => {
-      this.currentUtterance = null;
       onEnd?.();
       console.log('🔊 Finished speaking');
     };
 
     utterance.onerror = (event) => {
-      this.currentUtterance = null;
       onError?.(new Error(event.error || 'Speech synthesis error'));
     };
 
-    this.currentUtterance = utterance;
     this.synthesis.speak(utterance);
     console.log('🔊 Speaking...');
   }
@@ -176,7 +172,6 @@ export class VoiceService {
   stopSpeaking(): void {
     if (this.synthesis && this.synthesis.speaking) {
       this.synthesis.cancel();
-      this.currentUtterance = null;
       console.log('🛑 Stopped speaking');
     }
   }
