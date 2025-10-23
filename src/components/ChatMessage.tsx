@@ -198,96 +198,119 @@ export function ChatMessage({ message, onFork }: Props) {
 
         {/* Message Content */}
         <div className="flex-1 min-w-0">
-          <div
-            ref={cardRef}
-            className={`
-              px-4 py-3 rounded-2xl overflow-hidden
-              ${
-                isUser
-                  ? 'bg-muted text-foreground rounded-br-sm'
-                  : 'bg-card border border-border text-foreground rounded-bl-sm'
-              }
-            `}
-            style={{ wordWrap: 'break-word', overflowWrap: 'break-word', ...cardStyle }}
-          >
-            {isUser ? (
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {message.content}
-              </p>
-            ) : (
-              <div
-                className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
-                style={{
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                  maxWidth: '100%'
-                }}
-              >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
-                  components={{
-                    // Custom styling for paragraphs
-                    p: ({children}: any) => (
-                      <p
-                        className="mb-2 last:mb-0"
-                        style={{
-                          whiteSpace: 'pre-wrap',
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                      >
-                        {children}
-                      </p>
-                    ),
-                    // Custom styling for code blocks
-                    code: ({node, inline, className, children, ...props}: any) => {
-                      return inline ? (
-                        <code
-                          className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
-                          style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      ) : (
-                        <code
-                          className={`${className} text-xs block`}
-                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      );
-                    },
-                    // Custom styling for pre blocks
-                    pre: ({children}: any) => (
-                      <pre
-                        className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2"
-                        style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
-                      >
-                        {children}
-                      </pre>
-                    ),
-                    // Custom styling for links
-                    a: ({children, href}: any) => (
-                      <a
-                        href={href}
-                        className="text-blue-600 hover:underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                      >
-                        {children}
-                      </a>
-                    ),
+          <div className="relative group">
+            <div
+              ref={cardRef}
+              className={`
+                px-4 py-3 rounded-2xl overflow-hidden
+                ${
+                  isUser
+                    ? 'bg-muted text-foreground rounded-br-sm'
+                    : 'bg-card border border-border text-foreground rounded-bl-sm'
+                }
+              `}
+              style={{ wordWrap: 'break-word', overflowWrap: 'break-word', ...cardStyle }}
+            >
+              {isUser ? (
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </p>
+              ) : (
+                <div
+                  className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                  style={{
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    maxWidth: '100%'
                   }}
                 >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
-            )}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{
+                      // Custom styling for paragraphs
+                      p: ({children}: any) => (
+                        <p
+                          className="mb-2 last:mb-0"
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word'
+                          }}
+                        >
+                          {children}
+                        </p>
+                      ),
+                      // Custom styling for code blocks
+                      code: ({node, inline, className, children, ...props}: any) => {
+                        return inline ? (
+                          <code
+                            className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
+                            style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        ) : (
+                          <code
+                            className={`${className} text-xs block`}
+                            style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        );
+                      },
+                      // Custom styling for pre blocks
+                      pre: ({children}: any) => (
+                        <pre
+                          className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2"
+                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                        >
+                          {children}
+                        </pre>
+                      ),
+                      // Custom styling for links
+                      a: ({children, href}: any) => (
+                        <a
+                          href={href}
+                          className="text-blue-600 hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                        >
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </div>
+
+            {/* Copy Button - Top Right */}
+            <button
+              onClick={handleCopy}
+              className={`absolute top-2 right-2 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100 ${
+                copied
+                  ? 'bg-green-500 text-white opacity-100'
+                  : 'bg-background/80 backdrop-blur-sm hover:bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+              title={copied ? 'Copied!' : 'Copy message'}
+            >
+              {copied ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </button>
           </div>
 
           {/* Compact Metadata */}
