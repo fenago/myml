@@ -6,9 +6,12 @@
  */
 
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { voiceService } from '../services/VoiceService';
 import { useStore } from '../store/useStore';
+import { CameraCapture } from './CameraCapture';
+import { ScreenCapture } from './ScreenCapture';
+import { MicrophoneStream } from './MicrophoneStream';
 
 export interface MultimodalInput {
   text?: string;
@@ -35,6 +38,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [showCameraCapture, setShowCameraCapture] = useState(false);
+  const [showScreenCapture, setShowScreenCapture] = useState(false);
+  const [showMicrophoneStream, setShowMicrophoneStream] = useState(false);
   const { settings } = useStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +116,53 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
   const removeVideo = (index: number) => {
     setVideoFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Camera capture handler
+  const handleCameraCapture = (images: string[]) => {
+    // Convert base64 images to File objects
+    const files = images.map((base64, index) => {
+      const blob = base64ToBlob(base64);
+      return new File([blob], `camera-capture-${Date.now()}-${index}.jpg`, { type: 'image/jpeg' });
+    });
+    setImageFiles(prev => [...prev, ...files]);
+    setShowAttachMenu(false);
+  };
+
+  // Screen capture handler
+  const handleScreenCapture = (images: string[]) => {
+    // Convert base64 images to File objects
+    const files = images.map((base64, index) => {
+      const blob = base64ToBlob(base64);
+      return new File([blob], `screen-capture-${Date.now()}-${index}.jpg`, { type: 'image/jpeg' });
+    });
+    setImageFiles(prev => [...prev, ...files]);
+    setShowAttachMenu(false);
+  };
+
+  // Microphone capture handler
+  const handleMicrophoneCapture = async (audioBase64: string, duration: number) => {
+    // Convert base64 audio to File object
+    const blob = base64ToBlob(audioBase64);
+    const file = new File([blob], `microphone-${Date.now()}.webm`, { type: 'audio/webm' });
+    setAudioFiles(prev => [...prev, file]);
+    setAudioFileDurations(prev => [...prev, duration]);
+    setShowAttachMenu(false);
+  };
+
+  // Helper function to convert base64 to Blob
+  const base64ToBlob = (base64: string): Blob => {
+    const parts = base64.split(';base64,');
+    const contentType = parts[0].split(':')[1];
+    const raw = window.atob(parts[1]);
+    const rawLength = raw.length;
+    const uInt8Array = new Uint8Array(rawLength);
+
+    for (let i = 0; i < rawLength; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], { type: contentType });
   };
 
   // Drag and Drop handlers
@@ -475,6 +528,73 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         </div>
                       </div>
                     </button>
+
+                    {/* Camera Capture */}
+                    <button
+                      onClick={() => {
+                        setShowCameraCapture(true);
+                        setShowAttachMenu(false);
+                      }}
+                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-foreground">Live Camera</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Capture photos directly from your webcam</div>
+                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time capture</div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Screen Capture */}
+                    <button
+                      onClick={() => {
+                        setShowScreenCapture(true);
+                        setShowAttachMenu(false);
+                      }}
+                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-foreground">Screen Share</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Share your screen, window, or browser tab</div>
+                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time capture</div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Microphone Stream */}
+                    <button
+                      onClick={() => {
+                        setShowMicrophoneStream(true);
+                        setShowAttachMenu(false);
+                      }}
+                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-foreground">Record Audio</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Record live audio with waveform visualization</div>
+                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time recording</div>
+                        </div>
+                      </div>
+                    </button>
                   </div>
 
                   <div className="mt-3 pt-3 border-t border-border">
@@ -563,6 +683,38 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
         {supportMultimodal && <span className="ml-2">· Attach images, videos & audio for multimodal analysis</span>}
         {settings.voice.enableInput && <span className="ml-2">· Click mic to speak</span>}
       </p>
+
+      {/* Camera Capture Modal */}
+      <AnimatePresence>
+        {showCameraCapture && (
+          <CameraCapture
+            onCapture={handleCameraCapture}
+            onClose={() => setShowCameraCapture(false)}
+            resolution={parseInt(settings.imageResolution)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Screen Capture Modal */}
+      <AnimatePresence>
+        {showScreenCapture && (
+          <ScreenCapture
+            onCapture={handleScreenCapture}
+            onClose={() => setShowScreenCapture(false)}
+            resolution={parseInt(settings.imageResolution)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Microphone Stream Modal */}
+      <AnimatePresence>
+        {showMicrophoneStream && (
+          <MicrophoneStream
+            onCapture={handleMicrophoneCapture}
+            onClose={() => setShowMicrophoneStream(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
