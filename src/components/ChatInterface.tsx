@@ -34,6 +34,20 @@ export function ChatInterface({ onSendMessage }: Props) {
 
   const currentModel = getModelConfig(currentModelId);
 
+  // Calculate token usage (rough estimate)
+  const estimateTokens = (text: string): number => {
+    // Simple estimation: ~1 token per 4 characters or 1 token per word (whichever is higher)
+    const words = text.split(/\s+/).filter(w => w.length > 0).length;
+    const chars = text.length;
+    return Math.round(Math.max(words, chars / 4));
+  };
+
+  const contextLimit = 32000; // GEMMA 3n context window
+  const tokensUsed = currentConversation
+    ? currentConversation.messages.reduce((total, msg) => total + estimateTokens(msg.content), 0)
+    : 0;
+  const tokenPercentage = (tokensUsed / contextLimit) * 100;
+
   // Auto-scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -139,6 +153,33 @@ export function ChatInterface({ onSendMessage }: Props) {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Context Indicator */}
+          {currentConversation && currentConversation.messages.length > 0 && (
+            <div
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50"
+              title={`${tokensUsed.toLocaleString()} / ${contextLimit.toLocaleString()} tokens (${tokenPercentage.toFixed(1)}%)`}
+            >
+              <span className="text-xs text-muted-foreground">Context:</span>
+              <div className="w-24 h-2 bg-background rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    tokenPercentage < 50
+                      ? 'bg-green-500'
+                      : tokenPercentage < 75
+                      ? 'bg-yellow-500'
+                      : tokenPercentage < 90
+                      ? 'bg-orange-500'
+                      : 'bg-red-500'
+                  }`}
+                  style={{ width: `${Math.min(tokenPercentage, 100)}%` }}
+                />
+              </div>
+              <span className="text-xs font-mono text-muted-foreground">
+                {(tokensUsed / 1000).toFixed(1)}K
+              </span>
             </div>
           )}
 
