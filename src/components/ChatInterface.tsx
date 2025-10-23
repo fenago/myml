@@ -13,6 +13,7 @@ import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { TextShimmer } from './TextShimmer';
 import { PinnedMessages } from './PinnedMessages';
+import { MessageSearch } from './MessageSearch';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { ContextIndicator } from './microinteractions/ContextIndicator';
 import { useKonamiCode } from '../hooks/useKonamiCode';
@@ -480,6 +481,15 @@ export function ChatInterface({ onSendMessage }: Props) {
                 messageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }}
               onUnpin={handleTogglePin}
+            />
+
+            {/* Message Search */}
+            <MessageSearch
+              messages={currentConversation.messages}
+              onNavigateToMessage={(messageId) => {
+                const messageElement = document.getElementById(`message-${messageId}`);
+                messageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
             />
 
             {/* Messages */}
