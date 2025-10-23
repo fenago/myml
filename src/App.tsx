@@ -16,6 +16,7 @@ import { Particles } from './components/Particles';
 import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
+import { functionService } from './services/FunctionService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -137,6 +138,54 @@ export function App() {
     setIsGenerating(true);
 
     try {
+      // Check for function calling
+      let functionResult: any = null;
+      if (settings.functions.enableFunctionCalling && text) {
+        const functionCall = functionService.detectFunctionCall(text);
+
+        if (functionCall) {
+          console.log('🔧 Function call detected:', functionCall);
+
+          // Add function call message
+          const functionCallMessage: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: `🔧 Calling function: ${functionCall.functionName}...`,
+            timestamp: new Date(),
+          };
+          addMessage(currentConversationId, functionCallMessage);
+
+          // Execute function
+          const result = await functionService.executeFunction(functionCall);
+
+          if (result.success) {
+            console.log('✅ Function executed successfully:', result);
+            functionResult = result.result;
+
+            // Add function result message
+            const resultMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `✅ Function result:\n\`\`\`json\n${JSON.stringify(result.result, null, 2)}\n\`\`\``,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, resultMessage);
+          } else {
+            console.error('❌ Function execution failed:', result.error);
+
+            // Add error message
+            const errorMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `❌ Function execution failed: ${result.error}`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, errorMessage);
+          }
+        }
+      }
+
+      // Generate AI response (optionally using function result)
       // Check if model supports multimodal
       const config = getModelConfig(currentModelId);
       const isMultimodal = config.capabilities.length > 1;
