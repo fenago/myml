@@ -5,7 +5,7 @@
  * @author Dr. Ernesto Lee
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { LandingPage } from './components/LandingPage';
 import { ChatInterface } from './components/ChatInterface';
@@ -14,6 +14,7 @@ import { About } from './components/About';
 import { Features } from './components/Features';
 import { Particles } from './components/Particles';
 import { Analytics } from './components/Analytics';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
@@ -50,6 +51,24 @@ export function App() {
     analyticsOpen,
     toggleAnalytics,
   } = useStore();
+
+  /**
+   * Register Service Worker for PWA functionality
+   */
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+  }, []);
 
   /**
    * Reset to landing page
@@ -692,6 +711,9 @@ export function App() {
 
       {/* Analytics Dashboard */}
       {analyticsOpen && <Analytics onClose={toggleAnalytics} />}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </>
   );
 }
