@@ -101,7 +101,11 @@ export const useStore = create<AppState>((set) => ({
         'random_joke',
         'hacker_news',
         'reddit_news',
-      ], // All built-in functions enabled by default (no API keys required!)
+        'wikipedia_search',
+        'ip_geolocation',
+        'github_repo',
+        'word_definition',
+      ], // All 11 built-in functions enabled by default (no API keys required!)
     },
     responseStyle: {
       verbosity: 'concise', // Concise by default (was too verbose before)

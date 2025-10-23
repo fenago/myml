@@ -235,6 +235,141 @@ async function getHackerNews(params: Record<string, any>): Promise<any> {
 }
 
 /**
+ * Search Wikipedia
+ * Using Wikipedia API - free, no API key required
+ */
+async function searchWikipedia(params: Record<string, any>): Promise<any> {
+  const { query, limit = 3 } = params;
+
+  if (!query) {
+    throw new Error('Search query is required');
+  }
+
+  const searchResponse = await fetch(
+    `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=${limit}&format=json&origin=*`
+  );
+
+  const data = await searchResponse.json();
+
+  const results: any[] = [];
+  for (let i = 0; i < data[1].length; i++) {
+    results.push({
+      title: data[1][i],
+      description: data[2][i],
+      url: data[3][i],
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Get IP Geolocation
+ * Using ipapi.co - free, no API key required (limited to 1000/day)
+ */
+async function getIPGeolocation(params: Record<string, any>): Promise<any> {
+  const { ip = '' } = params;
+
+  const url = ip
+    ? `https://ipapi.co/${ip}/json/`
+    : 'https://ipapi.co/json/'; // If no IP provided, get user's IP
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (data.error) {
+    throw new Error(data.reason || 'Could not get geolocation');
+  }
+
+  return {
+    ip: data.ip,
+    city: data.city,
+    region: data.region,
+    country: data.country_name,
+    countryCode: data.country_code,
+    postal: data.postal,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    timezone: data.timezone,
+    currency: data.currency,
+    org: data.org,
+  };
+}
+
+/**
+ * Get GitHub Repository Info
+ * Using GitHub API - free, no API key required (rate limited)
+ */
+async function getGitHubRepo(params: Record<string, any>): Promise<any> {
+  const { repo } = params;
+
+  if (!repo) {
+    throw new Error('Repository name required (format: owner/repo)');
+  }
+
+  const response = await fetch(
+    `https://api.github.com/repos/${repo}`
+  );
+
+  const data = await response.json();
+
+  if (data.message === 'Not Found') {
+    throw new Error(`Repository not found: ${repo}`);
+  }
+
+  return {
+    name: data.name,
+    fullName: data.full_name,
+    description: data.description,
+    stars: data.stargazers_count,
+    forks: data.forks_count,
+    watchers: data.watchers_count,
+    openIssues: data.open_issues_count,
+    language: data.language,
+    license: data.license?.name || 'No license',
+    url: data.html_url,
+    createdAt: new Date(data.created_at).toLocaleDateString(),
+    updatedAt: new Date(data.updated_at).toLocaleDateString(),
+  };
+}
+
+/**
+ * Get word definition
+ * Using Free Dictionary API - free, no API key required
+ */
+async function getDefinition(params: Record<string, any>): Promise<any> {
+  const { word } = params;
+
+  if (!word) {
+    throw new Error('Word is required');
+  }
+
+  const response = await fetch(
+    `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`
+  );
+
+  const data = await response.json();
+
+  if (data.title === 'No Definitions Found') {
+    throw new Error(`No definition found for: ${word}`);
+  }
+
+  const entry = data[0];
+  const meanings = entry.meanings.map((m: any) => ({
+    partOfSpeech: m.partOfSpeech,
+    definition: m.definitions[0].definition,
+    example: m.definitions[0].example || null,
+  }));
+
+  return {
+    word: entry.word,
+    phonetic: entry.phonetic || '',
+    meanings,
+    sourceUrl: entry.sourceUrls?.[0] || '',
+  };
+}
+
+/**
  * Get posts from Reddit
  * Using Reddit JSON API - free, no API key required
  */
@@ -432,6 +567,76 @@ export const BUILT_IN_FUNCTIONS: FunctionDefinition[] = [
     builtIn: true,
     handler: getRedditNews,
   },
+  {
+    id: 'wikipedia_search',
+    name: 'Search Wikipedia',
+    description: 'Search Wikipedia for article summaries (no API key required)',
+    parameters: [
+      {
+        name: 'query',
+        type: 'string',
+        description: 'Search query (e.g., "Albert Einstein", "Python programming")',
+        required: true,
+      },
+      {
+        name: 'limit',
+        type: 'number',
+        description: 'Number of results (1-10, default: 3)',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: searchWikipedia,
+  },
+  {
+    id: 'ip_geolocation',
+    name: 'Get IP Geolocation',
+    description: 'Get geographic information about an IP address or your own location (no API key required)',
+    parameters: [
+      {
+        name: 'ip',
+        type: 'string',
+        description: 'IP address (optional, defaults to your IP)',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getIPGeolocation,
+  },
+  {
+    id: 'github_repo',
+    name: 'Get GitHub Repository Info',
+    description: 'Get detailed information about a GitHub repository (no API key required)',
+    parameters: [
+      {
+        name: 'repo',
+        type: 'string',
+        description: 'Repository in format "owner/repo" (e.g., "facebook/react")',
+        required: true,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getGitHubRepo,
+  },
+  {
+    id: 'word_definition',
+    name: 'Get Word Definition',
+    description: 'Get the definition, pronunciation, and usage of any English word (no API key required)',
+    parameters: [
+      {
+        name: 'word',
+        type: 'string',
+        description: 'Word to define (e.g., "serendipity")',
+        required: true,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getDefinition,
+  },
 ];
 
 export class FunctionService {
@@ -574,27 +779,229 @@ export class FunctionService {
   /**
    * Detect if user message might need a function call
    * Returns the function to call if detected
+   *
+   * IMPROVED: Now detects all 7 built-in functions with smart pattern matching
    */
   detectFunctionCall(userMessage: string): FunctionCall | null {
     const message = userMessage.toLowerCase();
 
-    // Weather detection
+    // 1. WEATHER DETECTION
     if (
-      (message.includes('weather') || message.includes('temperature') || message.includes('forecast')) &&
+      (message.includes('weather') || message.includes('temperature') || message.includes('forecast') ||
+       message.includes('hot') || message.includes('cold') || message.includes('rain')) &&
       this.functions.get('weather_openmeteo')?.enabled
     ) {
-      // Try to extract location from message
       const location = this.extractLocation(userMessage);
-
       return {
         functionId: 'weather_openmeteo',
         functionName: 'Get Weather',
-        parameters: { location: location || 'New York' }, // Default to New York if no location found
+        parameters: { location: location || 'New York' },
         timestamp: new Date(),
       };
     }
 
+    // 2. CURRENCY CONVERSION DETECTION
+    const currencyMatch = message.match(/convert\s+(\d+\.?\d*)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})/i) ||
+                         message.match(/(\d+\.?\d*)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})/i) ||
+                         message.match(/how\s+much\s+is\s+(\d+\.?\d*)\s*([a-z]{3})\s+in\s+([a-z]{3})/i);
+    if (currencyMatch && this.functions.get('currency_conversion')?.enabled) {
+      return {
+        functionId: 'currency_conversion',
+        functionName: 'Convert Currency',
+        parameters: {
+          amount: parseFloat(currencyMatch[1]),
+          from: currencyMatch[2].toUpperCase(),
+          to: currencyMatch[3].toUpperCase(),
+        },
+        timestamp: new Date(),
+      };
+    }
+
+    // 3. COUNTRY INFO DETECTION
+    const countryPatterns = [
+      /(?:tell me about|info(?:rmation)? about|details? (?:on|about|for))\s+([a-z\s]+?)(?:\?|$)/i,
+      /(?:what|where) is\s+([a-z\s]+?)(?:\?|$)/i,
+      /(?:capital|population|language) of\s+([a-z\s]+?)(?:\?|$)/i,
+    ];
+    for (const pattern of countryPatterns) {
+      const countryMatch = message.match(pattern);
+      if (countryMatch && this.functions.get('country_info')?.enabled) {
+        const potentialCountry = countryMatch[1].trim();
+        // Common countries to detect
+        const countries = ['france', 'japan', 'brazil', 'germany', 'canada', 'mexico', 'italy', 'spain', 'australia', 'india', 'china', 'usa', 'uk', 'russia'];
+        if (countries.some(c => potentialCountry.includes(c))) {
+          return {
+            functionId: 'country_info',
+            functionName: 'Get Country Information',
+            parameters: { country: potentialCountry },
+            timestamp: new Date(),
+          };
+        }
+      }
+    }
+
+    // 4. CRYPTO PRICES DETECTION
+    const cryptoKeywords = ['bitcoin', 'ethereum', 'btc', 'eth', 'crypto', 'cryptocurrency', 'cardano', 'ada', 'dogecoin', 'doge'];
+    if (
+      (cryptoKeywords.some(k => message.includes(k)) &&
+       (message.includes('price') || message.includes('cost') || message.includes('worth') || message.includes('value'))) &&
+      this.functions.get('crypto_prices')?.enabled
+    ) {
+      // Extract coin names
+      const coins = cryptoKeywords.filter(k => message.includes(k)).join(',');
+      return {
+        functionId: 'crypto_prices',
+        functionName: 'Get Cryptocurrency Prices',
+        parameters: { coins: coins || 'bitcoin,ethereum', currency: 'usd' },
+        timestamp: new Date(),
+      };
+    }
+
+    // 5. JOKE DETECTION
+    if (
+      (message.includes('joke') || message.includes('funny') || message.includes('humor') ||
+       message.includes('laugh') || message.includes('make me laugh')) &&
+      this.functions.get('random_joke')?.enabled
+    ) {
+      const category = message.includes('programming') ? 'Programming' : 'Any';
+      return {
+        functionId: 'random_joke',
+        functionName: 'Get Random Joke',
+        parameters: { category, type: 'single' },
+        timestamp: new Date(),
+      };
+    }
+
+    // 6. HACKER NEWS DETECTION
+    if (
+      ((message.includes('hacker news') || message.includes('hn')) ||
+       (message.includes('tech') && (message.includes('news') || message.includes('stories')))) &&
+      this.functions.get('hacker_news')?.enabled
+    ) {
+      const limit = this.extractNumber(message) || 10;
+      return {
+        functionId: 'hacker_news',
+        functionName: 'Get Hacker News Stories',
+        parameters: { limit, type: 'top' },
+        timestamp: new Date(),
+      };
+    }
+
+    // 7. REDDIT NEWS DETECTION
+    const redditMatch = message.match(/(?:reddit|r\/|subreddit)\s*([a-z]+)/i);
+    if (
+      (message.includes('reddit') || redditMatch ||
+       (message.includes('news') && !message.includes('hacker'))) &&
+      this.functions.get('reddit_news')?.enabled
+    ) {
+      const subreddit = redditMatch ? redditMatch[1] : 'worldnews';
+      const limit = this.extractNumber(message) || 10;
+      return {
+        functionId: 'reddit_news',
+        functionName: 'Get Reddit News',
+        parameters: { subreddit, limit },
+        timestamp: new Date(),
+      };
+    }
+
+    // 8. WIKIPEDIA SEARCH DETECTION
+    if (
+      ((message.includes('wikipedia') || message.includes('wiki')) ||
+       (message.includes('search') && message.includes('article')) ||
+       message.includes('what is') || message.includes('who is') || message.includes('tell me about')) &&
+      this.functions.get('wikipedia_search')?.enabled
+    ) {
+      // Extract query after common patterns
+      const patterns = [
+        /(?:wikipedia|wiki|search)\s+(?:for\s+)?(.+?)(?:\?|$)/i,
+        /(?:what|who)\s+is\s+(.+?)(?:\?|$)/i,
+        /tell me about\s+(.+?)(?:\?|$)/i,
+      ];
+      for (const pattern of patterns) {
+        const match = message.match(pattern);
+        if (match) {
+          return {
+            functionId: 'wikipedia_search',
+            functionName: 'Search Wikipedia',
+            parameters: { query: match[1].trim(), limit: 3 },
+            timestamp: new Date(),
+          };
+        }
+      }
+    }
+
+    // 9. IP GEOLOCATION DETECTION
+    if (
+      (message.includes('my location') || message.includes('my ip') ||
+       message.includes('where am i') || message.includes('geolocation') ||
+       message.includes('ip address')) &&
+      this.functions.get('ip_geolocation')?.enabled
+    ) {
+      // Try to extract IP address if provided
+      const ipMatch = message.match(/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/);
+      return {
+        functionId: 'ip_geolocation',
+        functionName: 'Get IP Geolocation',
+        parameters: { ip: ipMatch ? ipMatch[1] : '' },
+        timestamp: new Date(),
+      };
+    }
+
+    // 10. GITHUB REPO DETECTION
+    const githubMatch = message.match(/github\.com\/([a-z0-9_-]+\/[a-z0-9_-]+)/i) ||
+                        message.match(/(?:repo|repository)\s+([a-z0-9_-]+\/[a-z0-9_-]+)/i);
+    if (
+      ((message.includes('github') && (message.includes('repo') || message.includes('repository'))) ||
+       githubMatch) &&
+      this.functions.get('github_repo')?.enabled
+    ) {
+      const repo = githubMatch ? githubMatch[1] : null;
+      if (repo) {
+        return {
+          functionId: 'github_repo',
+          functionName: 'Get GitHub Repository Info',
+          parameters: { repo },
+          timestamp: new Date(),
+        };
+      }
+    }
+
+    // 11. WORD DEFINITION DETECTION
+    if (
+      ((message.includes('define') || message.includes('definition') ||
+        message.includes('what does') || message.includes('meaning of')) &&
+       !message.includes('function')) &&
+      this.functions.get('word_definition')?.enabled
+    ) {
+      const patterns = [
+        /define\s+(?:the\s+word\s+)?(.+?)(?:\?|$)/i,
+        /definition\s+of\s+(.+?)(?:\?|$)/i,
+        /what\s+does\s+(.+?)\s+mean/i,
+        /meaning\s+of\s+(.+?)(?:\?|$)/i,
+      ];
+      for (const pattern of patterns) {
+        const match = message.match(pattern);
+        if (match) {
+          const word = match[1].trim().replace(/['"]/g, '');
+          return {
+            functionId: 'word_definition',
+            functionName: 'Get Word Definition',
+            parameters: { word },
+            timestamp: new Date(),
+          };
+        }
+      }
+    }
+
     return null;
+  }
+
+  /**
+   * Extract a number from message (for limits)
+   */
+  private extractNumber(message: string): number | null {
+    const match = message.match(/\b(\d+)\b/);
+    return match ? parseInt(match[1]) : null;
   }
 
   /**
