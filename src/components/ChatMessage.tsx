@@ -16,6 +16,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import { useCardTilt } from '../hooks/useCardTilt';
 import { CodeBlock } from './CodeBlock';
+import { CodeSandbox } from './CodeSandbox';
 
 interface Props {
   message: Message;
@@ -33,6 +34,9 @@ export function ChatMessage({ message, onFork, onTogglePin, onEdit, onRegenerate
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
+  const [sandboxOpen, setSandboxOpen] = useState(false);
+  const [sandboxCode, setSandboxCode] = useState('');
+  const [sandboxLanguage, setSandboxLanguage] = useState<'javascript' | 'html' | 'css'>('javascript');
 
   // Card tilt effect for message cards
   const { ref: cardRef, style: cardStyle } = useCardTilt();
@@ -185,6 +189,12 @@ export function ChatMessage({ message, onFork, onTogglePin, onEdit, onRegenerate
     }
   };
 
+  const handleRunInSandbox = (code: string, language: string) => {
+    setSandboxCode(code);
+    setSandboxLanguage(language as 'javascript' | 'html' | 'css');
+    setSandboxOpen(true);
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -326,7 +336,7 @@ export function ChatMessage({ message, onFork, onTogglePin, onEdit, onRegenerate
                         const codeString = String(children).replace(/\n$/, '');
 
                         return (
-                          <CodeBlock code={codeString} language={language} />
+                          <CodeBlock code={codeString} language={language} onRunInSandbox={handleRunInSandbox} />
                         );
                       },
                       // Custom styling for pre blocks - just pass through since CodeBlock handles it
@@ -578,6 +588,15 @@ export function ChatMessage({ message, onFork, onTogglePin, onEdit, onRegenerate
           )}
         </div>
       </div>
+
+      {/* Code Sandbox */}
+      {sandboxOpen && (
+        <CodeSandbox
+          initialCode={sandboxCode}
+          language={sandboxLanguage}
+          onClose={() => setSandboxOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }

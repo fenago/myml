@@ -21,6 +21,7 @@ interface AppState {
   isGenerating: boolean;
   sidebarOpen: boolean;
   settingsOpen: boolean;
+  analyticsOpen: boolean;
 
   // Settings
   settings: AppSettings;
@@ -43,6 +44,7 @@ interface AppState {
   setIsGenerating: (isGenerating: boolean) => void;
   toggleSidebar: () => void;
   toggleSettings: () => void;
+  toggleAnalytics: () => void;
 
   updateSettings: (settings: Partial<AppSettings>) => void;
 }
@@ -59,6 +61,7 @@ export const useStore = create<AppState>((set) => ({
   isGenerating: false,
   sidebarOpen: false,
   settingsOpen: false,
+  analyticsOpen: false,
 
   settings: {
     defaultModel: 'gemma3nE2B',
@@ -319,6 +322,8 @@ export const useStore = create<AppState>((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
 
   toggleSettings: () => set((state) => ({ settingsOpen: !state.settingsOpen })),
+
+  toggleAnalytics: () => set((state) => ({ analyticsOpen: !state.analyticsOpen })),
 
   updateSettings: (newSettings) =>
     set((state) => ({

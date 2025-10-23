@@ -13,6 +13,7 @@ import { ModelLoadProgress } from './components/ModelLoadProgress';
 import { About } from './components/About';
 import { Features } from './components/Features';
 import { Particles } from './components/Particles';
+import { Analytics } from './components/Analytics';
 import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
@@ -21,6 +22,7 @@ import { VideoService } from './services/VideoService';
 import { functionService } from './services/FunctionService';
 import { videoProcessingService } from './services/VideoProcessingService';
 import { languageDetectionService } from './services/LanguageDetectionService';
+import { analyticsService } from './services/AnalyticsService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -45,6 +47,8 @@ export function App() {
     updateMessage,
     setIsGenerating,
     settings,
+    analyticsOpen,
+    toggleAnalytics,
   } = useStore();
 
   /**
@@ -504,6 +508,16 @@ export function App() {
         };
 
         addMessage(currentConversationId, assistantMessage);
+
+        // Track analytics
+        if (result.metadata?.inputTokens && result.metadata?.totalTokens) {
+          analyticsService.trackTokenUsage(
+            currentConversationId,
+            currentModelId,
+            result.metadata.inputTokens,
+            result.metadata.totalTokens - result.metadata.inputTokens
+          );
+        }
       } else {
         // Text-only generation with streaming
         const assistantMessageId = crypto.randomUUID();
@@ -587,6 +601,16 @@ export function App() {
               content: accumulatedText,
               ...(isDone && metadata ? { metadata } : {}),
             });
+
+            // Track analytics when streaming is complete
+            if (isDone && metadata?.inputTokens && metadata?.totalTokens) {
+              analyticsService.trackTokenUsage(
+                currentConversationId,
+                currentModelId,
+                metadata.inputTokens,
+                metadata.totalTokens - metadata.inputTokens
+              );
+            }
           },
           settings.responseStyle.verbosity, // Pass verbosity setting
           settings.systemPrompt, // Pass system prompt settings
@@ -665,6 +689,9 @@ export function App() {
         {/* Features Page */}
         <Route path="/features" element={<Features />} />
       </Routes>
+
+      {/* Analytics Dashboard */}
+      {analyticsOpen && <Analytics onClose={toggleAnalytics} />}
     </>
   );
 }
