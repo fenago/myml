@@ -457,75 +457,63 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute bottom-full left-0 mb-2 w-80 bg-card border border-border rounded-xl shadow-2xl p-4 z-50"
+                  className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-lg shadow-2xl p-2 z-50 max-h-[400px] overflow-y-auto"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-sm text-foreground">Attach Media</h3>
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <h3 className="font-semibold text-xs text-foreground">Attach</h3>
                     <button
                       onClick={() => setShowAttachMenu(false)}
-                      className="p-1 hover:bg-muted rounded text-muted-foreground"
+                      className="p-0.5 hover:bg-muted rounded text-muted-foreground"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {/* Images */}
                     <button
                       onClick={() => imageInputRef.current?.click()}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Images</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Visual analysis, object detection, scene understanding</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">PNG, JPG, WEBP</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Images</span>
                       </div>
                     </button>
 
                     {/* Videos */}
                     <button
                       onClick={() => videoInputRef.current?.click()}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Videos</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Video understanding, motion analysis, temporal reasoning</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">MP4, WEBM, OGG</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Videos</span>
                       </div>
                     </button>
 
                     {/* Audio */}
                     <button
                       onClick={() => audioInputRef.current?.click()}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Audio</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Transcription, translation, speech-to-text (35 languages)</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">MP3, WAV, OGG</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Audio Files</span>
                       </div>
                     </button>
 
@@ -535,20 +523,16 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         setShowCameraCapture(true);
                         setShowAttachMenu(false);
                       }}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Live Camera</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Capture photos directly from your webcam</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time capture</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Live Camera</span>
                       </div>
                     </button>
 
@@ -558,19 +542,15 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         setShowScreenCapture(true);
                         setShowAttachMenu(false);
                       }}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-pink-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Screen Share</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Share your screen, window, or browser tab</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time capture</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Screen Share</span>
                       </div>
                     </button>
 
@@ -580,27 +560,17 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         setShowMicrophoneStream(true);
                         setShowAttachMenu(false);
                       }}
-                      className="w-full p-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-left group"
+                      className="w-full p-2 bg-muted hover:bg-muted/80 rounded-md transition-colors text-left group"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground">Record Audio</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Record live audio with waveform visualization</div>
-                          <div className="text-xs text-muted-foreground/60 mt-1">Real-time recording</div>
-                        </div>
+                        <span className="font-medium text-xs text-foreground">Record Audio</span>
                       </div>
                     </button>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      All processing happens locally in your browser. No data is uploaded to servers.
-                    </p>
                   </div>
                 </motion.div>
               )}
