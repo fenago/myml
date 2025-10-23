@@ -12,6 +12,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { TextShimmer } from './TextShimmer';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 // Lazy load Settings for better initial load performance
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
@@ -32,6 +33,30 @@ export function ChatInterface({ onSendMessage }: Props) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'k',
+      ctrl: true,
+      description: 'Clear conversation',
+      action: () => {
+        const newConvId = createConversation(currentModelId);
+        setCurrentConversation(newConvId);
+      },
+    },
+    {
+      key: '/',
+      ctrl: true,
+      description: 'Toggle settings',
+      action: () => setShowSettings(prev => !prev),
+    },
+    {
+      key: 'Escape',
+      description: 'Close settings',
+      action: () => setShowSettings(false),
+    },
+  ]);
 
   const currentConversation = currentConversationId
     ? conversations[currentConversationId]

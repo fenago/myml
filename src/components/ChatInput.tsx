@@ -9,6 +9,8 @@ import { useState, useRef, KeyboardEvent, useEffect, lazy, Suspense } from 'reac
 import { motion, AnimatePresence } from 'framer-motion';
 import { voiceService } from '../services/VoiceService';
 import { useStore } from '../store/useStore';
+import { NeonGlowButton } from './microinteractions/NeonGlowButton';
+import { useRipple } from '../hooks/useRipple';
 
 // Lazy load heavy modal components for better performance
 const CameraCapture = lazy(() => import('./CameraCapture').then(m => ({ default: m.CameraCapture })));
@@ -49,6 +51,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
+
+  // Microinteraction hooks
+  const attachButtonRef = useRipple();
 
   const handleSend = () => {
     if ((input.trim() || imageFiles.length > 0 || audioFiles.length > 0 || videoFiles.length > 0) && !disabled) {
@@ -444,6 +449,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
               {/* Attach Button */}
               <button
+                ref={attachButtonRef}
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
                 disabled={disabled}
                 className="p-1.5 hover:bg-muted rounded-lg transition-colors disabled:opacity-50 relative"
@@ -612,11 +618,10 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
           />
 
           {/* Send Button */}
-          <motion.button
-            whileHover={{ scale: disabled ? 1 : 1.05 }}
-            whileTap={{ scale: disabled ? 1 : 0.95 }}
+          <NeonGlowButton
             onClick={handleSend}
             disabled={disabled || (!input.trim() && imageFiles.length === 0 && audioFiles.length === 0 && videoFiles.length === 0)}
+            loading={disabled}
             className={`
               p-3 rounded-xl flex-shrink-0
               transition-all duration-200
@@ -640,7 +645,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
               <path d="M22 2 11 13" />
               <path d="m22 2-7 20-4-9-9-4z" />
             </svg>
-          </motion.button>
+          </NeonGlowButton>
         </div>
       </motion.div>
 

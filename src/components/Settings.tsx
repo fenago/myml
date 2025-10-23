@@ -1193,6 +1193,46 @@ function AdvancedTab({ settings, updateSettings }: any) {
       </div>
 
       <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Keyboard Shortcuts</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Use these keyboard shortcuts for faster navigation
+        </p>
+
+        <div className="space-y-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Send message</span>
+            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">
+              Ctrl + Enter
+            </kbd>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Clear conversation</span>
+            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">
+              Ctrl + K
+            </kbd>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Toggle settings</span>
+            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">
+              Ctrl + /
+            </kbd>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Close modal/settings</span>
+            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">
+              Esc
+            </kbd>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">New line in message</span>
+            <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">
+              Shift + Enter
+            </kbd>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">About MyML</h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           All AI processing happens locally in your browser. No data is sent to external servers.

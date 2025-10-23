@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
+import { useCardTilt } from '../hooks/useCardTilt';
 
 interface Props {
   message: Message;
@@ -25,6 +26,9 @@ export function ChatMessage({ message, onFork }: Props) {
   const { settings } = useStore();
   const [showAllMetadata, setShowAllMetadata] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Card tilt effect for message cards
+  const { ref: cardRef, style: cardStyle } = useCardTilt();
 
   const metadata = message.metadata || {};
 
@@ -149,9 +153,25 @@ export function ChatMessage({ message, onFork }: Props) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={
+        isUser
+          ? { opacity: 0, x: 50, scale: 0.95 }
+          : { opacity: 0, scale: 0.95, y: 10 }
+      }
+      animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      transition={
+        isUser
+          ? {
+              duration: 0.4,
+              type: 'spring',
+              stiffness: 300,
+              damping: 25,
+            }
+          : {
+              duration: 0.5,
+              ease: [0.4, 0, 0.2, 1],
+            }
+      }
       className={`flex mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className={`flex items-start gap-3 max-w-[70%] min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -167,6 +187,7 @@ export function ChatMessage({ message, onFork }: Props) {
         {/* Message Content */}
         <div className="flex-1 min-w-0">
           <div
+            ref={cardRef}
             className={`
               px-4 py-3 rounded-2xl overflow-hidden
               ${
@@ -175,7 +196,7 @@ export function ChatMessage({ message, onFork }: Props) {
                   : 'bg-card border border-border text-foreground rounded-bl-sm'
               }
             `}
-            style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+            style={{ wordWrap: 'break-word', overflowWrap: 'break-word', ...cardStyle }}
           >
             {isUser ? (
               <p className="text-sm leading-relaxed whitespace-pre-wrap">
