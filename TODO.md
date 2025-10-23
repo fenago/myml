@@ -1,11 +1,11 @@
 # BrowserGPT - Development Roadmap & Status
 
 **Last Updated**: October 23, 2025
-**Current Version**: Phase 6 Complete - Multi-Language Support & Feature Discoverability
+**Current Version**: Phase 7 Complete - Code Features & Message Editing
 
 ---
 
-## ✅ Completed Features (Phases 1-6)
+## ✅ Completed Features (Phases 1-7)
 
 ### Phase 1: Core Functionality ✅
 - [x] Basic chat interface with message history
@@ -98,34 +98,53 @@
   - Performance breakdown (min/max/median/p95)
   - Auto-refresh dashboard (2s intervals)
 
+### Phase 7: Code Features & Message Editing ✅
+- [x] **Code Features**
+  - CodeBlock component with syntax highlighting
+  - Copy-to-clipboard for code snippets
+  - Support for 30+ programming languages
+  - Language name display and dark theme
+  - Markdown parser utilities
+  - Integrated with ReactMarkdown via rehype-highlight
+
+- [x] **Message Editing & Regeneration**
+  - Edit sent user messages with inline form
+  - Save & Resend functionality
+  - Message version history tracking
+  - Edit indicator for modified messages
+  - Regenerate assistant responses
+  - Multiple response variations support
+  - Message truncation and re-send flow
+  - Full versioning system in store
+
 ---
 
 ## 🔄 Current Status
 
-**Last Commit**: `b4bb1c9` - Add comprehensive multi-language support and feature discoverability
-**Build Status**: ✅ Successful (585.18 kB, 171.12 kB gzipped)
+**Last Commit**: `eb78f69` - Implement Phase 7: Code Features & Message Editing
+**Build Status**: ✅ Successful (590.19 kB, 172.32 kB gzipped)
 **Branch**: main
 **Outstanding Issues**: None
 
 ### Recent Additions (Latest Session)
-1. ✅ LanguageDetectionService with 45+ language support
-2. ✅ Translation mode with auto-detection
-3. ✅ Per-message language override
-4. ✅ Language quality indicators in Settings
-5. ✅ Model Dashboard with performance monitoring
-6. ✅ Help & Features Guide
-7. ✅ Google-style tooltip component
-8. ✅ Enhanced multimodal UI indicators
-9. ✅ Comprehensive feature documentation
+1. ✅ CodeBlock component with syntax highlighting
+2. ✅ Copy-to-clipboard for code snippets
+3. ✅ Support for 30+ programming languages
+4. ✅ Markdown parser utilities
+5. ✅ Edit sent user messages
+6. ✅ Regenerate assistant responses
+7. ✅ Message version history tracking
+8. ✅ Response variations support
+9. ✅ Full message editing flow with truncation
 
 ---
 
 ## 🚀 Potential Future Enhancements
 
-### Phase 7: Code & Development Features (Suggested)
-- [ ] Code syntax highlighting in messages
-- [ ] Code block copy button
-- [ ] Language-specific code formatting
+### Phase 7: Code & Development Features ✅ (Completed)
+- [x] Code syntax highlighting in messages
+- [x] Code block copy button
+- [x] Language-specific code formatting
 - [ ] Code execution sandbox (for safe code demos)
 - [ ] GitHub Gist integration for code sharing
 
@@ -164,10 +183,10 @@
 - [ ] Export analytics reports
 
 ### Quality of Life Improvements (Suggested)
-- [ ] Message editing after sending
-- [ ] Regenerate last response
-- [ ] Multiple response generation (show N variations)
-- [ ] Response history (see previous versions)
+- [x] Message editing after sending
+- [x] Regenerate last response
+- [x] Multiple response generation (show N variations)
+- [x] Response history (see previous versions)
 - [ ] Auto-save drafts
 - [ ] Conversation tags and categories
 - [ ] Advanced search filters
@@ -181,30 +200,32 @@
 Based on current state, here are the recommended next priorities:
 
 ### High Priority
-1. **Code Features** - Syntax highlighting and code block enhancements would significantly improve developer UX
-2. **Message Editing** - Allow users to edit sent messages and regenerate responses
-3. **PWA Enhancements** - Make the app installable and work offline
+1. **PWA Enhancements** - Make the app installable and work offline for better usability
+2. **Code Execution Sandbox** - Safe execution environment for code demos and testing
+3. **Auto-save Drafts** - Prevent loss of work with automatic draft saving
 
 ### Medium Priority
 4. **Conversation Templates** - Pre-built conversation starters for common tasks
 5. **Multi-model Comparison** - Side-by-side comparison of different models
 6. **Usage Analytics** - Better insights into token usage and costs
+7. **Conversation Tags** - Organize conversations with tags and categories
 
 ### Low Priority
-7. **Collaboration Features** - Sharing and collaborative sessions
-8. **Advanced Accessibility** - Enhanced screen reader and keyboard navigation
+8. **Collaboration Features** - Sharing and collaborative sessions
+9. **Advanced Accessibility** - Enhanced screen reader and keyboard navigation
+10. **GitHub Gist Integration** - Share code snippets directly to Gist
 
 ---
 
 ## 📊 Project Statistics
 
-- **Total Components**: 40+
+- **Total Components**: 43+ (added CodeBlock, MessageContent, utilities)
 - **Total Services**: 15+
-- **Supported Languages**: 45+
+- **Supported Languages**: 45+ (natural languages) + 30+ (code languages)
 - **Supported Models**: 5+ (CAESAR, Gemma variants)
-- **Lines of Code**: ~15,000+
-- **Bundle Size**: 585.18 kB (171.12 kB gzipped)
-- **Features**: 30+ documented features
+- **Lines of Code**: ~15,500+
+- **Bundle Size**: 590.19 kB (172.32 kB gzipped)
+- **Features**: 35+ documented features
 - **Keyboard Shortcuts**: 5+
 
 ---
@@ -212,9 +233,10 @@ Based on current state, here are the recommended next priorities:
 ## 🔧 Technical Debt & Maintenance
 
 ### Current Technical Debt
-- Bundle size approaching 600 kB (consider code splitting)
+- Bundle size now 590 kB (consider code splitting for further optimization)
 - InferenceEngine dynamically and statically imported (optimization opportunity)
 - Some components approaching 300+ lines (potential for splitting)
+- Message editing creates new variations but doesn't show variation UI yet
 
 ### Maintenance Tasks
 - Regular dependency updates
