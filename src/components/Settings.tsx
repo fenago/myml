@@ -4,7 +4,7 @@
  * @author Dr. Ernesto Lee
  */
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { getAvailableModels, type ModelId } from '../config/models';
@@ -12,6 +12,7 @@ import { getAllLanguages, AUDIO_TRANSCRIPTION_LANGUAGES } from '../config/langua
 import { voiceService } from '../services/VoiceService';
 import { functionService } from '../services/FunctionService';
 import type { FunctionDefinition } from '../types';
+import { FunctionEditor } from './FunctionEditor';
 
 interface Props {
   onClose: () => void;
@@ -24,6 +25,8 @@ export function Settings({ onClose }: Props) {
   const languages = getAllLanguages();
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [functions, setFunctions] = useState<FunctionDefinition[]>([]);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [functionToEdit, setFunctionToEdit] = useState<FunctionDefinition | undefined>();
 
   // Load available TTS voices
   useEffect(() => {
@@ -43,6 +46,31 @@ export function Settings({ onClose }: Props) {
   useEffect(() => {
     setFunctions(functionService.getFunctions());
   }, []);
+
+  // Function editor handlers
+  const handleCreateNew = () => {
+    setFunctionToEdit(undefined);
+    setIsEditorOpen(true);
+  };
+
+  const handleEditFunction = (func: FunctionDefinition) => {
+    setFunctionToEdit(func);
+    setIsEditorOpen(true);
+  };
+
+  const handleSaveFunction = (func: FunctionDefinition) => {
+    functionService.setFunction(func);
+    setFunctions(functionService.getFunctions());
+    setIsEditorOpen(false);
+    setFunctionToEdit(undefined);
+  };
+
+  const handleDeleteFunction = (id: string) => {
+    if (confirm('Are you sure you want to delete this function?')) {
+      functionService.removeFunction(id);
+      setFunctions(functionService.getFunctions());
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -808,7 +836,15 @@ export function Settings({ onClose }: Props) {
             {/* Available Functions */}
             {settings.functions.enableFunctionCalling && (
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Available Functions</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Available Functions</h4>
+                  <button
+                    onClick={handleCreateNew}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Create Custom Function
+                  </button>
+                </div>
                 <div className="space-y-3">
                   {functions.map((func) => (
                     <div
@@ -845,8 +881,8 @@ export function Settings({ onClose }: Props) {
                           )}
                         </div>
 
-                        {/* Toggle */}
-                        <div className="ml-4">
+                        {/* Toggle and Actions */}
+                        <div className="ml-4 flex flex-col gap-2">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -870,6 +906,26 @@ export function Settings({ onClose }: Props) {
                             />
                             <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                           </label>
+
+                          {/* Edit/Delete for custom functions */}
+                          {!func.builtIn && (
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleEditFunction(func)}
+                                className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                title="Edit function"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteFunction(func.id)}
+                                className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title="Delete function"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -934,6 +990,20 @@ export function Settings({ onClose }: Props) {
           </button>
         </div>
       </motion.div>
+
+      {/* Function Editor Modal */}
+      <AnimatePresence>
+        {isEditorOpen && (
+          <FunctionEditor
+            functionToEdit={functionToEdit}
+            onSave={handleSaveFunction}
+            onCancel={() => {
+              setIsEditorOpen(false);
+              setFunctionToEdit(undefined);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
