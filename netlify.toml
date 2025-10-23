@@ -1,0 +1,65 @@
+# Netlify Configuration for BrowserGPT
+# @author Dr. Ernesto Lee
+
+[build]
+  # Build command
+  command = "npm run build"
+
+  # Directory with build output
+  publish = "dist"
+
+  # Node version
+  [build.environment]
+    NODE_VERSION = "18"
+
+# Redirect rules for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for WASM and security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Required for SharedArrayBuffer and WASM threading
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Cache control for app shell
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache WASM files
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ONNX model files
+[[headers]]
+  for = "/*.onnx"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Functions configuration (if using Netlify Functions)
+[functions]
+  node_bundler = "esbuild"
+
+# Dev server configuration
+[dev]
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
+  autoLaunch = true
