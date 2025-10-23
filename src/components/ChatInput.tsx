@@ -11,6 +11,8 @@ import { voiceService } from '../services/VoiceService';
 import { useStore } from '../store/useStore';
 import { NeonGlowButton } from './microinteractions/NeonGlowButton';
 import { useRipple } from '../hooks/useRipple';
+import { Tooltip } from './Tooltip';
+import { languageDetectionService, SUPPORTED_LANGUAGES } from '../services/LanguageDetectionService';
 import { AudioOptionsModal, type AudioAction, type AudioTranslationOptions, type AudioAnalysisOptions } from './AudioOptionsModal';
 import { VideoOptionsModal, type VideoAction, type VideoAnalysisOptions, type VideoQAOptions } from './VideoOptionsModal';
 
@@ -30,6 +32,11 @@ export interface MultimodalInput {
   videoAction?: VideoAction;
   videoAnalysisOptions?: VideoAnalysisOptions;
   videoQAOptions?: VideoQAOptions;
+  // Language options
+  translationMode?: boolean;
+  sourceLanguage?: string;
+  targetLanguage?: string;
+  overrideLanguage?: string; // Per-message language override
 }
 
 interface Props {
@@ -63,6 +70,12 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [pendingAudioFile, setPendingAudioFile] = useState<{ file: File; duration: number } | null>(null);
   const [showVideoOptionsModal, setShowVideoOptionsModal] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<{ file: File; duration: number } | null>(null);
+  // Language state
+  const [translationMode, setTranslationMode] = useState(false);
+  const [sourceLanguage, setSourceLanguage] = useState('auto'); // 'auto' for auto-detection
+  const [targetLanguage, setTargetLanguage] = useState('en');
+  const [overrideLanguage, setOverrideLanguage] = useState<string | null>(null);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const { settings } = useStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +99,11 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
         videoAction: videoFiles.length > 0 ? videoAction : undefined,
         videoAnalysisOptions: videoAction === 'analyze' ? videoAnalysisOptions : undefined,
         videoQAOptions: videoAction === 'qa' ? videoQAOptions : undefined,
+        // Language options
+        translationMode: translationMode || undefined,
+        sourceLanguage: translationMode ? sourceLanguage : undefined,
+        targetLanguage: translationMode ? targetLanguage : undefined,
+        overrideLanguage: overrideLanguage || undefined,
       });
       setInput('');
       setImageFiles([]);
@@ -101,6 +119,10 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
       setShowAttachMenu(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
+        // Keep focus in the input box after sending
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 0);
       }
     }
   };
@@ -617,20 +639,141 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
             <div className="flex gap-1 flex-shrink-0">
               {/* Voice Input Button */}
               {settings.voice.enableInput && (
+                <Tooltip content={isListening ? 'Stop listening' : 'Speak your question'} position="top">
+                  <button
+                    onClick={toggleVoiceInput}
+                    disabled={disabled}
+                    className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                      isListening
+                        ? 'bg-red-500 text-white animate-pulse'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </button>
+                </Tooltip>
+              )}
+
+              {/* Translation Mode Toggle */}
+              <Tooltip content={translationMode ? 'Exit translation mode' : 'Enable translation mode'} position="top">
                 <button
-                  onClick={toggleVoiceInput}
+                  onClick={() => setTranslationMode(!translationMode)}
                   disabled={disabled}
                   className={`p-1.5 rounded-lg transition-all disabled:opacity-50 ${
-                    isListening
-                      ? 'bg-red-500 text-white animate-pulse'
+                    translationMode
+                      ? 'bg-blue-500 text-white'
                       : 'hover:bg-muted'
                   }`}
-                  title={isListening ? 'Stop listening' : 'Start voice input'}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                   </svg>
                 </button>
+              </Tooltip>
+
+              {/* Language Menu Toggle */}
+              {(translationMode || overrideLanguage) && (
+                <div className="relative flex-shrink-0">
+                  <Tooltip content="Select languages" position="top">
+                    <button
+                      onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                      disabled={disabled}
+                      className="p-1.5 hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                      </svg>
+                    </button>
+                  </Tooltip>
+
+                  {/* Language Selection Menu */}
+                  {showLanguageMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute bottom-full left-0 mb-2 w-72 bg-card border border-border rounded-lg shadow-2xl p-3 z-50 max-h-96 overflow-y-auto"
+                    >
+                      <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+                        <h3 className="font-semibold text-sm text-foreground">
+                          {translationMode ? 'Translation Languages' : 'Response Language'}
+                        </h3>
+                        <button
+                          onClick={() => setShowLanguageMenu(false)}
+                          className="p-0.5 hover:bg-muted rounded text-muted-foreground"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {translationMode ? (
+                        <div className="space-y-3">
+                          {/* Source Language */}
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">From</label>
+                            <select
+                              value={sourceLanguage}
+                              onChange={(e) => setSourceLanguage(e.target.value)}
+                              className="w-full px-2 py-1.5 text-sm bg-background border border-border rounded-lg"
+                            >
+                              <option value="auto">🔍 Auto-detect</option>
+                              {SUPPORTED_LANGUAGES.map((lang) => (
+                                <option key={lang.code} value={lang.code}>
+                                  {languageDetectionService.getMultimodalSupportIcon(lang.multimodalSupport)}{' '}
+                                  {lang.name} ({lang.nativeName})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Target Language */}
+                          <div>
+                            <label className="text-xs text-muted-foreground mb-1 block">To</label>
+                            <select
+                              value={targetLanguage}
+                              onChange={(e) => setTargetLanguage(e.target.value)}
+                              className="w-full px-2 py-1.5 text-sm bg-background border border-border rounded-lg"
+                            >
+                              {SUPPORTED_LANGUAGES.map((lang) => (
+                                <option key={lang.code} value={lang.code}>
+                                  {languageDetectionService.getMultimodalSupportIcon(lang.multimodalSupport)}{' '}
+                                  {lang.name} ({lang.nativeName})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Response Language</label>
+                          <select
+                            value={overrideLanguage || ''}
+                            onChange={(e) => setOverrideLanguage(e.target.value || null)}
+                            className="w-full px-2 py-1.5 text-sm bg-background border border-border rounded-lg"
+                          >
+                            <option value="">Default ({settings.language.responseLanguage})</option>
+                            {SUPPORTED_LANGUAGES.map((lang) => (
+                              <option key={lang.code} value={lang.code}>
+                                {languageDetectionService.getMultimodalSupportIcon(lang.multimodalSupport)}{' '}
+                                {lang.name} ({lang.nativeName})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Legend */}
+                      <div className="mt-3 pt-2 border-t border-border text-xs text-muted-foreground space-y-1">
+                        <div>🌟 Full multimodal support</div>
+                        <div>⭐ Partial multimodal support</div>
+                        <div>📝 Text-only support</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               )}
 
               {/* Unified Attachment Button */}
@@ -662,17 +805,34 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                 className="hidden"
               />
 
-              {/* Attach Button */}
+              {/* Attach Button - Enhanced with multimodal icons */}
               <button
                 ref={attachButtonRef}
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
                 disabled={disabled}
-                className="p-1.5 hover:bg-muted rounded-lg transition-colors disabled:opacity-50 relative"
-                title="Attach files"
+                className="group relative px-2 py-1.5 hover:bg-muted rounded-lg transition-all disabled:opacity-50 flex items-center gap-1"
+                title="Add images, audio, or video (multimodal)"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {/* Main Plus Icon */}
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
+
+                {/* Multimodal Capability Indicators - Subtle */}
+                <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                  {/* Image Icon */}
+                  <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                  {/* Audio Icon */}
+                  <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" />
+                  </svg>
+                  {/* Video Icon */}
+                  <svg className="w-3 h-3 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                  </svg>
+                </div>
               </button>
 
               {/* Attachment Modal */}
@@ -833,20 +993,21 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
           />
 
           {/* Send Button */}
-          <NeonGlowButton
-            onClick={handleSend}
-            disabled={disabled || (!input.trim() && imageFiles.length === 0 && audioFiles.length === 0 && videoFiles.length === 0)}
-            loading={disabled}
-            className={`
-              p-3 rounded-xl flex-shrink-0
-              transition-all duration-200
-              ${
-                disabled || (!input.trim() && imageFiles.length === 0 && audioFiles.length === 0 && videoFiles.length === 0)
-                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
-              }
-            `}
-          >
+          <Tooltip content="Send message" shortcut="Enter" position="top">
+            <NeonGlowButton
+              onClick={handleSend}
+              disabled={disabled || (!input.trim() && imageFiles.length === 0 && audioFiles.length === 0 && videoFiles.length === 0)}
+              loading={disabled}
+              className={`
+                p-3 rounded-xl flex-shrink-0
+                transition-all duration-200
+                ${
+                  disabled || (!input.trim() && imageFiles.length === 0 && audioFiles.length === 0 && videoFiles.length === 0)
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer'
+                }
+              `}
+            >
             <svg
               width="20"
               height="20"
@@ -861,6 +1022,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
               <path d="m22 2-7 20-4-9-9-4z" />
             </svg>
           </NeonGlowButton>
+          </Tooltip>
         </div>
       </motion.div>
 

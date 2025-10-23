@@ -8,6 +8,7 @@
 import { FilesetResolver, LlmInference } from '@mediapipe/tasks-genai';
 import type { ModelConfig } from '../config/models';
 import type { GenerationOptions, MessageMetadata } from '../types';
+import { modelInfoService } from './ModelInfoService';
 
 export interface MultimodalInput {
   text?: string;
@@ -236,6 +237,9 @@ export class InferenceEngine {
         topP: options.topP,
       };
 
+      // Record inference for dashboard statistics
+      modelInfoService.recordInference(tokensPerSecond, responseLatency, totalTokens);
+
       return {
         text: response,
         metadata,
@@ -329,6 +333,9 @@ export class InferenceEngine {
               temperature: options.temperature,
               topP: options.topP,
             };
+
+            // Record inference for dashboard statistics
+            modelInfoService.recordInference(tokensPerSecond, responseLatency, totalTokens);
 
             // Send final update with metadata
             onToken(partialResult, true, metadata);
@@ -442,6 +449,9 @@ export class InferenceEngine {
         metadata.videoProcessingTime = videoProcessingTime;
         // We could estimate duration from file size, but skip for now
       }
+
+      // Record inference for dashboard statistics
+      modelInfoService.recordInference(tokensPerSecond, responseLatency, totalTokens);
 
       return {
         text: response,

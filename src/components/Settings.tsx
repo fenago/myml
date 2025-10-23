@@ -16,6 +16,7 @@ import { FunctionEditor } from './FunctionEditor';
 import { SystemPromptEditor } from './SystemPromptEditor';
 import { StructuredOutputEditor } from './StructuredOutputEditor';
 import { SafetySettingsEditor } from './SafetySettingsEditor';
+import { languageDetectionService } from '../services/LanguageDetectionService';
 
 interface Props {
   onClose: () => void;
@@ -951,6 +952,93 @@ function LanguageTab({ languages, availableVoices, settings, updateSettings }: a
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
           🎨 = Supports multimodal (image/audio) inputs
         </p>
+      </div>
+
+      {/* Language Quality & Support Indicators */}
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Language Support Levels</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Gemma 3n supports 45+ languages with varying multimodal capabilities
+        </p>
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🌟</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Full Support</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">(Text + Vision + Audio)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">⭐</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Partial Support</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">(Text + Vision OR Audio)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📝</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Text Only</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">(Text input/output only)</span>
+          </div>
+        </div>
+
+        {/* Languages by Support Level */}
+        <div className="space-y-4">
+          {/* Full Support Languages */}
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <span className="text-lg">🌟</span>
+              Full Multimodal Support ({languageDetectionService.getLanguagesBySupport('full').length} languages)
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {languageDetectionService.getLanguagesBySupport('full').map((lang) => (
+                <div
+                  key={lang.code}
+                  className="text-sm bg-white dark:bg-gray-800 px-3 py-2 rounded border border-gray-200 dark:border-gray-700"
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{lang.name}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">({lang.nativeName})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Partial Support Languages */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <span className="text-lg">⭐</span>
+              Partial Multimodal Support ({languageDetectionService.getLanguagesBySupport('partial').length} languages)
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {languageDetectionService.getLanguagesBySupport('partial').map((lang) => (
+                <div
+                  key={lang.code}
+                  className="text-sm bg-white dark:bg-gray-800 px-3 py-2 rounded border border-gray-200 dark:border-gray-700"
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{lang.name}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">({lang.nativeName})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Text-Only Languages */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <span className="text-lg">📝</span>
+              Text-Only Support ({languageDetectionService.getLanguagesBySupport('text-only').length} languages)
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {languageDetectionService.getLanguagesBySupport('text-only').map((lang) => (
+                <div
+                  key={lang.code}
+                  className="text-sm bg-white dark:bg-gray-900 px-3 py-2 rounded border border-gray-200 dark:border-gray-600"
+                >
+                  <span className="font-medium text-gray-900 dark:text-white">{lang.name}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">({lang.nativeName})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="pt-6 border-t border-gray-200 dark:border-gray-800">

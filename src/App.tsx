@@ -20,6 +20,7 @@ import { AudioService } from './services/AudioService';
 import { VideoService } from './services/VideoService';
 import { functionService } from './services/FunctionService';
 import { videoProcessingService } from './services/VideoProcessingService';
+import { languageDetectionService } from './services/LanguageDetectionService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -138,7 +139,11 @@ export function App() {
       audioAnalysisOptions,
       videoAction,
       videoAnalysisOptions,
-      videoQAOptions
+      videoQAOptions,
+      translationMode,
+      sourceLanguage,
+      targetLanguage,
+      overrideLanguage
     } = input;
     const hasMultimodal =
       (imageFiles && imageFiles.length > 0) ||
@@ -516,6 +521,42 @@ export function App() {
         // Accumulate text locally - MediaPipe sends INCREMENTAL chunks
         let accumulatedText = '';
 
+        // Handle translation mode or language override
+        let processedText = text || '';
+
+        if (translationMode && text) {
+          // Translation mode: translate from source to target language
+          let detectedSourceLang = sourceLanguage || 'auto';
+
+          // Auto-detect source language if needed
+          if (detectedSourceLang === 'auto') {
+            const detection = languageDetectionService.detectLanguage(text);
+            detectedSourceLang = detection.detectedLanguage.code;
+
+            // Add info message about detected language
+            const detectionMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `🔍 Detected language: ${detection.detectedLanguage.name} (${detection.detectedLanguage.nativeName}) - Confidence: ${(detection.confidence * 100).toFixed(0)}%`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, detectionMessage);
+          }
+
+          // Generate translation prompt
+          processedText = languageDetectionService.generateTranslationPrompt({
+            text,
+            sourceLanguage: detectedSourceLang,
+            targetLanguage: targetLanguage || 'en',
+          });
+        } else if (overrideLanguage && text) {
+          // Language override: add instruction to respond in specified language
+          const lang = languageDetectionService.getLanguageByCode(overrideLanguage);
+          if (lang) {
+            processedText = `Please respond in ${lang.name} (${lang.nativeName}).\n\n${text}`;
+          }
+        }
+
         // Build conversation history for context (last 10 messages to avoid token overflow)
         const currentConv = useStore.getState().conversations[currentConversationId];
         const recentMessages = currentConv.messages.slice(-10); // Last 10 messages
@@ -525,8 +566,8 @@ export function App() {
 
         // Append current user message to history
         const fullPrompt = conversationHistory
-          ? `${conversationHistory}\n\nUser: ${text || ''}`
-          : `User: ${text || ''}`;
+          ? `${conversationHistory}\n\nUser: ${processedText}`
+          : `User: ${processedText}`;
 
         // Generate streaming response with verbosity control, system prompts, structured output, and safety
         await inferenceEngine.generateStreaming(

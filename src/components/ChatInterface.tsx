@@ -24,6 +24,9 @@ import { MilestoneCelebration } from './MilestoneCelebration';
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
 import { getModelConfig } from '../config/models';
 import { exportService } from '../services/ExportService';
+import { ModelDashboard } from './ModelDashboard';
+import { HelpGuide } from './HelpGuide';
+import { Tooltip } from './Tooltip';
 import type { MultimodalInput } from './ChatInput';
 
 interface Props {
@@ -36,6 +39,8 @@ export function ChatInterface({ onSendMessage }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage } = useStore();
   const [showSettings, setShowSettings] = useState(false);
+  const [showModelDashboard, setShowModelDashboard] = useState(false);
+  const [showHelpGuide, setShowHelpGuide] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
@@ -61,9 +66,19 @@ export function ChatInterface({ onSendMessage }: Props) {
       action: () => setShowSettings(prev => !prev),
     },
     {
+      key: 'h',
+      ctrl: true,
+      description: 'Show help & features',
+      action: () => setShowHelpGuide(prev => !prev),
+    },
+    {
       key: 'Escape',
-      description: 'Close settings',
-      action: () => setShowSettings(false),
+      description: 'Close settings or modals',
+      action: () => {
+        setShowSettings(false);
+        setShowHelpGuide(false);
+        setShowModelDashboard(false);
+      },
     },
   ]);
 
@@ -319,52 +334,55 @@ export function ChatInterface({ onSendMessage }: Props) {
           />
 
           {/* Import Button */}
-          <button
-            onClick={handleImportClick}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
-            title="Import Conversation"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <span className="hidden sm:inline">Import</span>
-          </button>
+          <Tooltip content="Import saved conversation" position="bottom">
+            <button
+              onClick={handleImportClick}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span className="hidden sm:inline">Import</span>
+            </button>
+          </Tooltip>
 
           {/* Summarize Button - Show when conversation is long */}
           {currentConversation && currentConversation.messages.length >= 10 && (
-            <button
-              onClick={handleSummarizeConversation}
-              disabled={isSummarizing}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2 disabled:opacity-50"
-              title="Summarize Conversation"
-            >
-              {isSummarizing ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              )}
-              <span className="hidden sm:inline">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
-            </button>
+            <Tooltip content="Generate conversation summary" position="bottom">
+              <button
+                onClick={handleSummarizeConversation}
+                disabled={isSummarizing}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSummarizing ? (
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+                <span className="hidden sm:inline">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
+              </button>
+            </Tooltip>
           )}
 
           {/* Export Menu */}
           {currentConversation && currentConversation.messages.length > 0 && (
             <div className="relative">
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
-                title="Export Conversation"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span className="hidden sm:inline">Export</span>
-              </button>
+              <Tooltip content="Export as JSON, Markdown, Text, or HTML" position="bottom">
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span className="hidden sm:inline">Export</span>
+                </button>
+              </Tooltip>
 
               {showExportMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-50">
@@ -416,17 +434,50 @@ export function ChatInterface({ onSendMessage }: Props) {
           {/* Context Indicator - Enhanced with animations */}
           <ContextIndicator tokensUsed={tokensUsed} contextLimit={contextLimit} />
 
-          <button
-            onClick={() => setShowSettings(true)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
-            title="Settings"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="hidden sm:inline">Settings</span>
-          </button>
+          {/* Model Dashboard Button */}
+          <Tooltip content="View model performance & memory stats" position="bottom">
+            <button
+              onClick={() => setShowModelDashboard(true)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Customize model & app settings" shortcut="Ctrl+/" position="bottom">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden sm:inline">Settings</span>
+            </button>
+          </Tooltip>
+
+          {/* Help Button */}
+          <Tooltip content="View all features & keyboard shortcuts" shortcut="Ctrl+H" position="bottom">
+            <button
+              onClick={() => setShowHelpGuide(true)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="hidden sm:inline">Help</span>
+            </button>
+          </Tooltip>
+
           <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-2 h-2 rounded-full bg-green-500" />
             <span>Ready</span>
@@ -561,6 +612,16 @@ export function ChatInterface({ onSendMessage }: Props) {
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"><div className="text-white">Loading settings...</div></div>}>
           <Settings onClose={() => setShowSettings(false)} />
         </Suspense>
+      )}
+
+      {/* Model Dashboard Modal */}
+      {showModelDashboard && (
+        <ModelDashboard onClose={() => setShowModelDashboard(false)} />
+      )}
+
+      {/* Help Guide Modal */}
+      {showHelpGuide && (
+        <HelpGuide onClose={() => setShowHelpGuide(false)} />
       )}
 
       {/* Theme Notification Toast */}
