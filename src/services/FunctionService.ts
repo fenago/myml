@@ -197,6 +197,78 @@ async function getRandomJoke(params: Record<string, any>): Promise<any> {
 }
 
 /**
+ * Get top stories from Hacker News
+ * Using Hacker News API - free, no API key required
+ */
+async function getHackerNews(params: Record<string, any>): Promise<any> {
+  const { limit = 10, type = 'top' } = params;
+
+  // Get top story IDs
+  const storiesResponse = await fetch(
+    `https://hacker-news.firebaseio.com/v0/${type}stories.json`
+  );
+  const storyIds = await storiesResponse.json();
+
+  // Fetch details for first N stories
+  const stories = [];
+  const maxStories = Math.min(limit, 20); // Cap at 20 to avoid too many requests
+
+  for (let i = 0; i < maxStories; i++) {
+    const storyResponse = await fetch(
+      `https://hacker-news.firebaseio.com/v0/item/${storyIds[i]}.json`
+    );
+    const story = await storyResponse.json();
+
+    if (story && story.title) {
+      stories.push({
+        title: story.title,
+        url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
+        score: story.score,
+        author: story.by,
+        time: new Date(story.time * 1000).toLocaleString(),
+        comments: story.descendants || 0,
+      });
+    }
+  }
+
+  return stories;
+}
+
+/**
+ * Get posts from Reddit
+ * Using Reddit JSON API - free, no API key required
+ */
+async function getRedditNews(params: Record<string, any>): Promise<any> {
+  const { subreddit = 'worldnews', limit = 10 } = params;
+
+  const response = await fetch(
+    `https://www.reddit.com/r/${subreddit}.json?limit=${Math.min(limit, 25)}`
+  );
+
+  const data = await response.json();
+
+  if (!data.data || !data.data.children) {
+    throw new Error(`Could not fetch from r/${subreddit}`);
+  }
+
+  const posts = data.data.children.map((child: any) => {
+    const post = child.data;
+    return {
+      title: post.title,
+      url: post.url,
+      subreddit: post.subreddit,
+      author: post.author,
+      score: post.score,
+      comments: post.num_comments,
+      created: new Date(post.created_utc * 1000).toLocaleString(),
+      isVideo: post.is_video,
+    };
+  });
+
+  return posts;
+}
+
+/**
  * Built-in function definitions
  */
 export const BUILT_IN_FUNCTIONS: FunctionDefinition[] = [
@@ -315,6 +387,50 @@ export const BUILT_IN_FUNCTIONS: FunctionDefinition[] = [
     enabled: true,
     builtIn: true,
     handler: getRandomJoke,
+  },
+  {
+    id: 'hacker_news',
+    name: 'Get Hacker News Stories',
+    description: 'Get top tech stories from Hacker News (no API key required)',
+    parameters: [
+      {
+        name: 'limit',
+        type: 'number',
+        description: 'Number of stories to fetch (1-20, default: 10)',
+        required: false,
+      },
+      {
+        name: 'type',
+        type: 'string',
+        description: 'Story type: top, new, best, ask, show, job (default: "top")',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getHackerNews,
+  },
+  {
+    id: 'reddit_news',
+    name: 'Get Reddit News',
+    description: 'Get posts from any Reddit subreddit (no API key required)',
+    parameters: [
+      {
+        name: 'subreddit',
+        type: 'string',
+        description: 'Subreddit name (e.g., "worldnews", "technology", "science") - default: "worldnews"',
+        required: false,
+      },
+      {
+        name: 'limit',
+        type: 'number',
+        description: 'Number of posts to fetch (1-25, default: 10)',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getRedditNews,
   },
 ];
 

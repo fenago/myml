@@ -99,6 +99,8 @@ export const useStore = create<AppState>((set) => ({
         'country_info',
         'crypto_prices',
         'random_joke',
+        'hacker_news',
+        'reddit_news',
       ], // All built-in functions enabled by default (no API keys required!)
     },
     responseStyle: {
