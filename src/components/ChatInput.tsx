@@ -12,6 +12,7 @@ import { useStore } from '../store/useStore';
 import { NeonGlowButton } from './microinteractions/NeonGlowButton';
 import { useRipple } from '../hooks/useRipple';
 import { AudioOptionsModal, type AudioAction, type AudioTranslationOptions, type AudioAnalysisOptions } from './AudioOptionsModal';
+import { VideoOptionsModal, type VideoAction, type VideoAnalysisOptions, type VideoQAOptions } from './VideoOptionsModal';
 
 // Lazy load heavy modal components for better performance
 const CameraCapture = lazy(() => import('./CameraCapture').then(m => ({ default: m.CameraCapture })));
@@ -26,6 +27,9 @@ export interface MultimodalInput {
   audioAction?: AudioAction;
   audioTranslationOptions?: AudioTranslationOptions;
   audioAnalysisOptions?: AudioAnalysisOptions;
+  videoAction?: VideoAction;
+  videoAnalysisOptions?: VideoAnalysisOptions;
+  videoQAOptions?: VideoQAOptions;
 }
 
 interface Props {
@@ -45,6 +49,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [audioTranslationOptions, setAudioTranslationOptions] = useState<AudioTranslationOptions | undefined>();
   const [audioAnalysisOptions, setAudioAnalysisOptions] = useState<AudioAnalysisOptions | undefined>();
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
+  const [videoAction, setVideoAction] = useState<VideoAction>('attach');
+  const [videoAnalysisOptions, setVideoAnalysisOptions] = useState<VideoAnalysisOptions | undefined>();
+  const [videoQAOptions, setVideoQAOptions] = useState<VideoQAOptions | undefined>();
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -54,6 +61,8 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [showMicrophoneStream, setShowMicrophoneStream] = useState(false);
   const [showAudioOptionsModal, setShowAudioOptionsModal] = useState(false);
   const [pendingAudioFile, setPendingAudioFile] = useState<{ file: File; duration: number } | null>(null);
+  const [showVideoOptionsModal, setShowVideoOptionsModal] = useState(false);
+  const [pendingVideoFile, setPendingVideoFile] = useState<{ file: File; duration: number } | null>(null);
   const { settings } = useStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +83,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
         audioAction: audioFiles.length > 0 ? audioAction : undefined,
         audioTranslationOptions: audioAction === 'translate' ? audioTranslationOptions : undefined,
         audioAnalysisOptions: audioAction === 'analyze' ? audioAnalysisOptions : undefined,
+        videoAction: videoFiles.length > 0 ? videoAction : undefined,
+        videoAnalysisOptions: videoAction === 'analyze' ? videoAnalysisOptions : undefined,
+        videoQAOptions: videoAction === 'qa' ? videoQAOptions : undefined,
       });
       setInput('');
       setImageFiles([]);
@@ -83,6 +95,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
       setAudioAction('attach');
       setAudioTranslationOptions(undefined);
       setAudioAnalysisOptions(undefined);
+      setVideoAction('attach');
+      setVideoAnalysisOptions(undefined);
+      setVideoQAOptions(undefined);
       setShowAttachMenu(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -107,6 +122,20 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
         resolve(0); // Return 0 if duration can't be determined
       });
       audio.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Calculate video duration
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.addEventListener('loadedmetadata', () => {
+        resolve(video.duration);
+      });
+      video.addEventListener('error', () => {
+        resolve(0); // Return 0 if duration can't be determined
+      });
+      video.src = URL.createObjectURL(file);
     });
   };
 
@@ -156,10 +185,47 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
     }
   };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setVideoFiles(prev => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    // Calculate durations for all video files
+    const durations = await Promise.all(files.map(file => getVideoDuration(file)));
+
+    // If user wants to show options modal for the first file
+    if (settings.video.showOptionsOnUpload && files.length > 0) {
+      setPendingVideoFile({ file: files[0], duration: durations[0] });
+      setShowVideoOptionsModal(true);
+
+      // Add remaining files directly
+      if (files.length > 1) {
+        setVideoFiles(prev => [...prev, ...files.slice(1)]);
+      }
+    } else {
+      // Add all files directly without showing modal
+      setVideoFiles(prev => [...prev, ...files]);
+    }
+
     setShowAttachMenu(false);
+  };
+
+  const handleVideoModalAction = (
+    action: VideoAction,
+    analysisOptions?: VideoAnalysisOptions,
+    qaOptions?: VideoQAOptions
+  ) => {
+    if (pendingVideoFile) {
+      // Add the video file
+      setVideoFiles(prev => [...prev, pendingVideoFile.file]);
+
+      // Set the action and options
+      setVideoAction(action);
+      setVideoAnalysisOptions(analysisOptions);
+      setVideoQAOptions(qaOptions);
+
+      // Clear pending file
+      setPendingVideoFile(null);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -869,6 +935,20 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
             setPendingAudioFile(null);
           }}
           onAction={handleAudioModalAction}
+        />
+      )}
+
+      {/* Video Options Modal */}
+      {pendingVideoFile && (
+        <VideoOptionsModal
+          isOpen={showVideoOptionsModal}
+          fileName={pendingVideoFile.file.name}
+          duration={pendingVideoFile.duration}
+          onClose={() => {
+            setShowVideoOptionsModal(false);
+            setPendingVideoFile(null);
+          }}
+          onAction={handleVideoModalAction}
         />
       )}
     </div>

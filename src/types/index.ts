@@ -131,6 +131,14 @@ export interface AppSettings {
     showOptionsOnUpload: boolean; // Show audio options modal when uploading
     defaultAction: 'attach' | 'transcribe' | 'translate' | 'analyze'; // Default action for audio uploads
   };
+  video: {
+    enableAnalysis: boolean; // Enable advanced video analysis
+    enableQA: boolean; // Enable video question answering
+    showOptionsOnUpload: boolean; // Show video options modal when uploading
+    defaultAction: 'attach' | 'describe' | 'analyze' | 'summarize' | 'qa'; // Default action for video uploads
+    frameExtractionRate: 1 | 2 | 5; // Frames per second to extract (1fps, 2fps, 5fps)
+    maxFrames: 10 | 20 | 30; // Maximum frames to extract from video
+  };
   storage: {
     cacheLargeModels: boolean; // Cache models >500MB (uses more disk space but faster subsequent loads)
   };

@@ -112,6 +112,14 @@ export const useStore = create<AppState>((set) => ({
       showOptionsOnUpload: true, // Show audio options modal when uploading
       defaultAction: 'attach', // Default action for audio uploads
     },
+    video: {
+      enableAnalysis: true, // Enable advanced video analysis
+      enableQA: true, // Enable video question answering
+      showOptionsOnUpload: true, // Show video options modal when uploading
+      defaultAction: 'attach', // Default action for video uploads
+      frameExtractionRate: 1, // 1 frame per second (balanced)
+      maxFrames: 10, // Max 10 frames (prevents token overflow)
+    },
     storage: {
       cacheLargeModels: false, // Don't cache large models by default (prevents memory errors)
     },

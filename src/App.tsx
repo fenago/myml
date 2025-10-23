@@ -17,6 +17,7 @@ import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
 import { AudioService } from './services/AudioService';
+import { VideoService } from './services/VideoService';
 import { functionService } from './services/FunctionService';
 import { videoProcessingService } from './services/VideoProcessingService';
 import { getModelConfig } from './config/models';
@@ -24,8 +25,9 @@ import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
 import { formatFunctionResult } from './utils/formatFunctionResult';
 
-// Create audio service instance
+// Create audio and video service instances
 const audioService = new AudioService(inferenceEngine);
+const videoService = new VideoService(inferenceEngine);
 
 export function App() {
   const [showChat, setShowChat] = useState(false);
@@ -126,7 +128,18 @@ export function App() {
   const handleSendMessage = async (input: MultimodalInput) => {
     if (!currentConversationId) return;
 
-    const { text, imageFiles, audioFiles, videoFiles, audioAction, audioTranslationOptions, audioAnalysisOptions } = input;
+    const {
+      text,
+      imageFiles,
+      audioFiles,
+      videoFiles,
+      audioAction,
+      audioTranslationOptions,
+      audioAnalysisOptions,
+      videoAction,
+      videoAnalysisOptions,
+      videoQAOptions
+    } = input;
     const hasMultimodal =
       (imageFiles && imageFiles.length > 0) ||
       (audioFiles && audioFiles.length > 0) ||
@@ -300,27 +313,166 @@ export function App() {
         }
 
         if (videoFiles) {
-          for (const file of videoFiles) {
-            // Extract frames from video
-            const processingResult = await videoProcessingService.extractFrames(
-              file,
-              1, // Extract 1 frame per second
-              10, // Max 10 frames
-              settings.imageResolution + 'x' + settings.imageResolution
-            );
-
-            // Add info message about frame extraction
-            const frameInfoMessage: Message = {
+          // Handle video based on selected action
+          if (videoAction === 'describe') {
+            // Describe video content
+            const infoMessage: Message = {
               id: crypto.randomUUID(),
               role: 'assistant',
-              content: `📹 Extracted ${processingResult.frames.length} frames from video (${processingResult.duration.toFixed(1)}s duration, ${processingResult.width}x${processingResult.height})`,
+              content: `📹 Describing video content...`,
               timestamp: new Date(),
             };
-            addMessage(currentConversationId, frameInfoMessage);
+            addMessage(currentConversationId, infoMessage);
 
-            // Add each frame as an image
-            for (const frame of processingResult.frames) {
-              multimodalInputs.push({ imageSource: frame.dataURL });
+            for (const file of videoFiles) {
+              // Extract frames
+              const processingResult = await videoProcessingService.extractFrames(
+                file,
+                settings.video.frameExtractionRate,
+                settings.video.maxFrames,
+                settings.imageResolution + 'x' + settings.imageResolution
+              );
+
+              const frameDataURLs = processingResult.frames.map(f => f.dataURL);
+              const result = await videoService.describeVideo(frameDataURLs, processingResult.duration);
+
+              const descriptionMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**Video Description:**\n\n${result.description}\n\n*Analyzed ${result.frameCount} frames in ${result.duration.toFixed(2)}s*`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, descriptionMessage);
+            }
+          } else if (videoAction === 'analyze' && videoAnalysisOptions) {
+            // Analyze video for specific aspects
+            const analysisTypeLabels = {
+              scene: 'Scene Detection',
+              action: 'Action Recognition',
+              object: 'Object Tracking',
+              emotion: 'Emotion Analysis'
+            };
+
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `🔍 Performing ${analysisTypeLabels[videoAnalysisOptions.analysisType]}...`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of videoFiles) {
+              // Extract frames
+              const processingResult = await videoProcessingService.extractFrames(
+                file,
+                settings.video.frameExtractionRate,
+                settings.video.maxFrames,
+                settings.imageResolution + 'x' + settings.imageResolution
+              );
+
+              const frameDataURLs = processingResult.frames.map(f => f.dataURL);
+              const result = await videoService.analyzeVideo(
+                frameDataURLs,
+                processingResult.duration,
+                videoAnalysisOptions.analysisType
+              );
+
+              const analysisMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**${analysisTypeLabels[videoAnalysisOptions.analysisType]}:**\n\n${result.findings}\n\n*Analyzed ${result.frameCount} frames in ${result.duration.toFixed(2)}s*`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, analysisMessage);
+            }
+          } else if (videoAction === 'summarize') {
+            // Summarize video with key moments
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `📋 Summarizing video...`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of videoFiles) {
+              // Extract frames
+              const processingResult = await videoProcessingService.extractFrames(
+                file,
+                settings.video.frameExtractionRate,
+                settings.video.maxFrames,
+                settings.imageResolution + 'x' + settings.imageResolution
+              );
+
+              const frameDataURLs = processingResult.frames.map(f => f.dataURL);
+              const result = await videoService.summarizeVideo(frameDataURLs, processingResult.duration);
+
+              const summaryMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**Video Summary:**\n\n${result.summary}\n\n**Key Moments:**\n${result.keyMoments.map((m, i) => `${i + 1}. ${m}`).join('\n')}\n\n*Analyzed ${result.frameCount} frames in ${result.duration.toFixed(2)}s*`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, summaryMessage);
+            }
+          } else if (videoAction === 'qa' && videoQAOptions) {
+            // Answer question about video
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `❓ Analyzing video to answer: "${videoQAOptions.question}"`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of videoFiles) {
+              // Extract frames
+              const processingResult = await videoProcessingService.extractFrames(
+                file,
+                settings.video.frameExtractionRate,
+                settings.video.maxFrames,
+                settings.imageResolution + 'x' + settings.imageResolution
+              );
+
+              const frameDataURLs = processingResult.frames.map(f => f.dataURL);
+              const result = await videoService.answerVideoQuestion(
+                frameDataURLs,
+                processingResult.duration,
+                videoQAOptions.question
+              );
+
+              const qaMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**Q:** ${result.question}\n\n**A:** ${result.answer}\n\n*Analyzed ${result.frameCount} frames in ${result.duration.toFixed(2)}s*`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, qaMessage);
+            }
+          } else {
+            // Default: just attach the video frames
+            for (const file of videoFiles) {
+              // Extract frames from video
+              const processingResult = await videoProcessingService.extractFrames(
+                file,
+                settings.video.frameExtractionRate,
+                settings.video.maxFrames,
+                settings.imageResolution + 'x' + settings.imageResolution
+              );
+
+              // Add info message about frame extraction
+              const frameInfoMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `📹 Extracted ${processingResult.frames.length} frames from video (${processingResult.duration.toFixed(1)}s duration, ${processingResult.width}x${processingResult.height})`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, frameInfoMessage);
+
+              // Add each frame as an image
+              for (const frame of processingResult.frames) {
+                multimodalInputs.push({ imageSource: frame.dataURL });
+              }
             }
           }
         }

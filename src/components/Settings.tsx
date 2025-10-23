@@ -1172,6 +1172,153 @@ function LanguageTab({ languages, availableVoices, settings, updateSettings }: a
           </div>
         </div>
       </div>
+
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Advanced Video Features</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Configure Gemma 3n's video understanding capabilities
+        </p>
+
+        <div className="space-y-3">
+          {/* Video Analysis */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Video Analysis</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Analyze scenes, actions, objects, and emotions
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.video.enableAnalysis}
+                onChange={(e) => updateSettings({ video: { ...settings.video, enableAnalysis: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Video Q&A */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Video Q&A</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Ask questions about video content
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.video.enableQA}
+                onChange={(e) => updateSettings({ video: { ...settings.video, enableQA: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Show Options on Upload */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Video Options Dialog</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Show options when uploading video files
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.video.showOptionsOnUpload}
+                onChange={(e) => updateSettings({ video: { ...settings.video, showOptionsOnUpload: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Frame Extraction Rate */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Frame Extraction Rate
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[1, 2, 5].map((fps) => (
+                <button
+                  key={fps}
+                  onClick={() => updateSettings({ video: { ...settings.video, frameExtractionRate: fps as any } })}
+                  className={`p-3 rounded-lg border-2 transition-all text-center ${
+                    settings.video.frameExtractionRate === fps
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-gray-300 dark:border-gray-700 hover:border-blue-500/50'
+                  }`}
+                >
+                  <div className="font-medium text-gray-900 dark:text-white">{fps} fps</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {fps === 1 && 'Balanced'}
+                    {fps === 2 && 'Detailed'}
+                    {fps === 5 && 'Very detailed'}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Higher rates extract more frames for better analysis
+            </p>
+          </div>
+
+          {/* Max Frames */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Maximum Frames
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[10, 20, 30].map((max) => (
+                <button
+                  key={max}
+                  onClick={() => updateSettings({ video: { ...settings.video, maxFrames: max as any } })}
+                  className={`p-3 rounded-lg border-2 transition-all text-center ${
+                    settings.video.maxFrames === max
+                      ? 'border-purple-500 bg-purple-500/10'
+                      : 'border-gray-300 dark:border-gray-700 hover:border-purple-500/50'
+                  }`}
+                >
+                  <div className="font-medium text-gray-900 dark:text-white">{max} frames</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {max === 10 && 'Fast'}
+                    {max === 20 && 'Balanced'}
+                    {max === 30 && 'Thorough'}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Limits total frames to prevent token overflow
+            </p>
+          </div>
+
+          {/* Default Action */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Default Video Action
+            </label>
+            <select
+              value={settings.video.defaultAction}
+              onChange={(e) => updateSettings({ video: { ...settings.video, defaultAction: e.target.value as any } })}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="attach">📎 Just Attach</option>
+              <option value="describe">📝 Describe Video</option>
+              <option value="analyze">🔍 Analyze Video</option>
+              <option value="summarize">📋 Summarize Video</option>
+              <option value="qa">❓ Ask About Video</option>
+            </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Used when video options dialog is disabled
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
