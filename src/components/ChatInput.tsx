@@ -33,11 +33,13 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const { settings } = useStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   const handleSend = () => {
     if ((input.trim() || imageFiles.length > 0 || audioFiles.length > 0 || videoFiles.length > 0) && !disabled) {
@@ -86,6 +88,50 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
   const removeVideo = (index: number) => {
     setVideoFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Drag and Drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = Array.from(e.dataTransfer.files);
+
+    // Categorize files by type
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        setImageFiles(prev => [...prev, file]);
+      } else if (file.type.startsWith('audio/')) {
+        setAudioFiles(prev => [...prev, file]);
+      } else if (file.type.startsWith('video/')) {
+        setVideoFiles(prev => [...prev, file]);
+      }
+    });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -149,7 +195,31 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   }, [isListening]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 pb-6">
+    <div
+      className="w-full max-w-3xl mx-auto px-4 pb-6 relative"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag and Drop Overlay */}
+      {isDragging && supportMultimodal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-blue-500/10 backdrop-blur-sm border-2 border-dashed border-blue-500 rounded-2xl z-50 flex items-center justify-center"
+        >
+          <div className="text-center">
+            <svg className="w-16 h-16 mx-auto mb-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="text-lg font-medium text-blue-600">Drop files here</p>
+            <p className="text-sm text-blue-500 mt-1">Images, videos, and audio supported</p>
+          </div>
+        </motion.div>
+      )}
+
       {/* File Previews */}
       {(imageFiles.length > 0 || audioFiles.length > 0 || videoFiles.length > 0) && (
         <div className="mb-3 flex flex-wrap gap-2">

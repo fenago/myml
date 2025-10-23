@@ -93,7 +93,13 @@ export const useStore = create<AppState>((set) => ({
     },
     functions: {
       enableFunctionCalling: true, // Enabled by default
-      availableFunctions: ['weather_openmeteo'], // Weather function enabled by default
+      availableFunctions: [
+        'weather_openmeteo',
+        'currency_conversion',
+        'country_info',
+        'crypto_prices',
+        'random_joke',
+      ], // All built-in functions enabled by default (no API keys required!)
     },
     responseStyle: {
       verbosity: 'concise', // Concise by default (was too verbose before)

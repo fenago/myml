@@ -58,6 +58,145 @@ async function getWeather(params: Record<string, any>): Promise<any> {
 }
 
 /**
+ * Get currency conversion rates
+ * Using exchangerate-api.com - free, no API key required
+ */
+async function getCurrencyConversion(params: Record<string, any>): Promise<any> {
+  const { from, to, amount = 1 } = params;
+
+  if (!from || !to) {
+    throw new Error('Both "from" and "to" currency codes are required (e.g., USD, EUR, GBP)');
+  }
+
+  const response = await fetch(
+    `https://api.exchangerate-api.com/v4/latest/${from.toUpperCase()}`
+  );
+
+  const data = await response.json();
+
+  if (!data.rates) {
+    throw new Error(`Could not get exchange rates for ${from}`);
+  }
+
+  const rate = data.rates[to.toUpperCase()];
+  if (!rate) {
+    throw new Error(`Currency code ${to} not found`);
+  }
+
+  const convertedAmount = amount * rate;
+
+  return {
+    from: from.toUpperCase(),
+    to: to.toUpperCase(),
+    amount: parseFloat(amount),
+    rate,
+    convertedAmount,
+    date: data.date,
+  };
+}
+
+/**
+ * Get country information
+ * Using restcountries.com - free, no API key required
+ */
+async function getCountryInfo(params: Record<string, any>): Promise<any> {
+  const { country } = params;
+
+  if (!country) {
+    throw new Error('Country name or code is required');
+  }
+
+  const response = await fetch(
+    `https://restcountries.com/v3.1/name/${encodeURIComponent(country)}?fullText=false`
+  );
+
+  const data = await response.json();
+
+  if (!data || data.length === 0) {
+    throw new Error(`Country not found: ${country}`);
+  }
+
+  const countryData = data[0];
+
+  return {
+    name: countryData.name.common,
+    officialName: countryData.name.official,
+    capital: countryData.capital?.[0] || 'N/A',
+    population: countryData.population,
+    region: countryData.region,
+    subregion: countryData.subregion,
+    languages: Object.values(countryData.languages || {}).join(', '),
+    currencies: Object.values(countryData.currencies || {}).map((c: any) => c.name).join(', '),
+    timezone: countryData.timezones?.[0] || 'N/A',
+    flag: countryData.flag,
+  };
+}
+
+/**
+ * Get cryptocurrency prices
+ * Using CoinGecko API - free, no API key required
+ */
+async function getCryptoPrices(params: Record<string, any>): Promise<any> {
+  const { coins = 'bitcoin,ethereum', currency = 'usd' } = params;
+
+  const coinIds = coins.toLowerCase().replace(/\s/g, '');
+
+  const response = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds}&vs_currencies=${currency}&include_24hr_change=true&include_market_cap=true`
+  );
+
+  const data = await response.json();
+
+  const result: any[] = [];
+
+  Object.keys(data).forEach((coin) => {
+    const currencyKey = currency.toLowerCase();
+    result.push({
+      coin: coin.charAt(0).toUpperCase() + coin.slice(1),
+      price: data[coin][currencyKey],
+      change24h: data[coin][`${currencyKey}_24h_change`]?.toFixed(2) || 0,
+      marketCap: data[coin][`${currencyKey}_market_cap`],
+      currency: currency.toUpperCase(),
+    });
+  });
+
+  return result;
+}
+
+/**
+ * Get a random joke
+ * Using JokeAPI.dev - free, no API key required
+ */
+async function getRandomJoke(params: Record<string, any>): Promise<any> {
+  const { category = 'Any', type = 'single' } = params;
+
+  const response = await fetch(
+    `https://v2.jokeapi.dev/joke/${category}?type=${type}`
+  );
+
+  const data = await response.json();
+
+  if (data.error) {
+    throw new Error('Could not fetch joke');
+  }
+
+  if (data.type === 'single') {
+    return {
+      type: 'single',
+      joke: data.joke,
+      category: data.category,
+    };
+  } else {
+    return {
+      type: 'twopart',
+      setup: data.setup,
+      delivery: data.delivery,
+      category: data.category,
+    };
+  }
+}
+
+/**
  * Built-in function definitions
  */
 export const BUILT_IN_FUNCTIONS: FunctionDefinition[] = [
@@ -85,9 +224,97 @@ export const BUILT_IN_FUNCTIONS: FunctionDefinition[] = [
         required: false,
       },
     ],
-    enabled: true, // Enabled by default
+    enabled: true,
     builtIn: true,
     handler: getWeather,
+  },
+  {
+    id: 'currency_conversion',
+    name: 'Convert Currency',
+    description: 'Convert between different currencies with real-time exchange rates (no API key required)',
+    parameters: [
+      {
+        name: 'from',
+        type: 'string',
+        description: 'Source currency code (e.g., USD, EUR, GBP)',
+        required: true,
+      },
+      {
+        name: 'to',
+        type: 'string',
+        description: 'Target currency code (e.g., USD, EUR, GBP)',
+        required: true,
+      },
+      {
+        name: 'amount',
+        type: 'number',
+        description: 'Amount to convert (default: 1)',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getCurrencyConversion,
+  },
+  {
+    id: 'country_info',
+    name: 'Get Country Information',
+    description: 'Get detailed information about any country including population, capital, languages, and more (no API key required)',
+    parameters: [
+      {
+        name: 'country',
+        type: 'string',
+        description: 'Country name (e.g., "France", "Japan", "Brazil")',
+        required: true,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getCountryInfo,
+  },
+  {
+    id: 'crypto_prices',
+    name: 'Get Cryptocurrency Prices',
+    description: 'Get current prices and market data for cryptocurrencies (no API key required)',
+    parameters: [
+      {
+        name: 'coins',
+        type: 'string',
+        description: 'Comma-separated coin IDs (e.g., "bitcoin,ethereum,cardano") - default: "bitcoin,ethereum"',
+        required: false,
+      },
+      {
+        name: 'currency',
+        type: 'string',
+        description: 'Target currency (e.g., usd, eur, gbp) - default: "usd"',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getCryptoPrices,
+  },
+  {
+    id: 'random_joke',
+    name: 'Get Random Joke',
+    description: 'Get a random joke to lighten the mood (no API key required)',
+    parameters: [
+      {
+        name: 'category',
+        type: 'string',
+        description: 'Joke category: Any, Programming, Misc, Dark, Pun, Spooky, Christmas (default: "Any")',
+        required: false,
+      },
+      {
+        name: 'type',
+        type: 'string',
+        description: 'Joke type: single or twopart (default: "single")',
+        required: false,
+      },
+    ],
+    enabled: true,
+    builtIn: true,
+    handler: getRandomJoke,
   },
 ];
 
