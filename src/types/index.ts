@@ -88,6 +88,21 @@ export interface AppSettings {
     textShimmer: boolean;
     splashCursor: boolean;
     particles: boolean;
+    neonGlowButtons: boolean;
+    magneticButtons: boolean;
+    skeletonLoaders: boolean;
+    typingParticles: boolean;
+    cardTilt: boolean;
+    animatedCheckboxes: boolean;
+    rippleEffect: boolean;
+    allEnabled: boolean;
+  };
+  easterEggs: {
+    konamiCode: boolean;
+    messageMilestones: boolean;
+    modelPersonalities: boolean;
+    hiddenThemes: boolean;
+    timeBased: boolean;
     allEnabled: boolean;
   };
   metadata: {

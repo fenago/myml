@@ -492,6 +492,268 @@ function AppearanceTab({ settings, updateSettings }: any) {
               <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
             </label>
           </div>
+
+          {/* Neon Glow Buttons */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Neon Glow Buttons</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Electric glow effect on buttons</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.neonGlowButtons}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, neonGlowButtons: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Magnetic Buttons */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Magnetic Buttons</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Buttons pull cursor toward them</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.magneticButtons}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, magneticButtons: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Skeleton Loaders */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Skeleton Loaders</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Smooth animated loading states</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.skeletonLoaders}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, skeletonLoaders: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Typing Particles */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Typing Indicator Particles</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Floating particles when AI is typing</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.typingParticles}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, typingParticles: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Card Tilt */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Card Tilt on Hover</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">3D perspective effect on messages</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.cardTilt}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, cardTilt: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Animated Checkboxes */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Animated Checkboxes</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Smooth bounce effect on toggles</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.animatedCheckboxes}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, animatedCheckboxes: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Ripple Effect */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Ripple Click Effect</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Material Design ripple on clicks</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.microinteractions.rippleEffect}
+                onChange={(e) =>
+                  updateSettings({
+                    microinteractions: { ...settings.microinteractions, rippleEffect: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Easter Eggs */}
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Easter Eggs & Fun Features</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Hidden surprises and delightful interactions
+        </p>
+
+        <div className="space-y-3">
+          {/* Konami Code */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Konami Code Secret</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">↑↑↓↓←→←→BA unlocks Matrix theme</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.easterEggs.konamiCode}
+                onChange={(e) =>
+                  updateSettings({
+                    easterEggs: { ...settings.easterEggs, konamiCode: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Message Milestones */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Message Milestones</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Confetti at 100, 500, 1000 messages</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.easterEggs.messageMilestones}
+                onChange={(e) =>
+                  updateSettings({
+                    easterEggs: { ...settings.easterEggs, messageMilestones: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Model Personalities */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Model Personality Quirks</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Fun responses to special phrases</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.easterEggs.modelPersonalities}
+                onChange={(e) =>
+                  updateSettings({
+                    easterEggs: { ...settings.easterEggs, modelPersonalities: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Hidden Themes */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Hidden Themes</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">/midnight, /neon, /sunset, /hacker, /minimal</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.easterEggs.hiddenThemes}
+                onChange={(e) =>
+                  updateSettings({
+                    easterEggs: { ...settings.easterEggs, hiddenThemes: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Time-Based Surprises */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Time-Based Surprises</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Special themes for holidays and midnight</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.easterEggs.timeBased}
+                onChange={(e) =>
+                  updateSettings({
+                    easterEggs: { ...settings.easterEggs, timeBased: e.target.checked },
+                  })
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
         </div>
       </div>
 
