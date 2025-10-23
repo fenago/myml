@@ -462,7 +462,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                   className="absolute bottom-full left-0 mb-2 w-56 bg-card border border-border rounded-lg shadow-2xl p-2 z-50 max-h-[400px] overflow-y-auto"
                 >
                   <div className="flex items-center justify-between mb-2 px-1">
-                    <h3 className="font-semibold text-xs text-foreground">Attach</h3>
+                    <h3 className="font-semibold text-xs text-foreground">Add Media</h3>
                     <button
                       onClick={() => setShowAttachMenu(false)}
                       className="p-0.5 hover:bg-muted rounded text-muted-foreground"
@@ -473,7 +473,10 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                     </button>
                   </div>
 
-                  <div className="space-y-1">
+                  {/* Upload Files Section */}
+                  <div className="mb-2">
+                    <div className="text-[10px] font-medium text-muted-foreground px-1 mb-1">UPLOAD</div>
+                    <div className="space-y-1">
                     {/* Images */}
                     <button
                       onClick={() => imageInputRef.current?.click()}
@@ -518,7 +521,13 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         <span className="font-medium text-xs text-foreground">Audio Files</span>
                       </div>
                     </button>
+                    </div>
+                  </div>
 
+                  {/* Capture Section */}
+                  <div>
+                    <div className="text-[10px] font-medium text-muted-foreground px-1 mb-1">CAPTURE</div>
+                    <div className="space-y-1">
                     {/* Camera Capture */}
                     <button
                       onClick={() => {
@@ -573,6 +582,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                         <span className="font-medium text-xs text-foreground">Record Audio</span>
                       </div>
                     </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
