@@ -124,6 +124,13 @@ export interface AppSettings {
     responseLanguage: string; // Default language for AI responses (ISO code)
     audioTranscriptionLanguage: string; // Default for audio transcription
   };
+  audio: {
+    asrProvider: 'web-speech' | 'gemma'; // ASR provider: Web Speech API or Gemma 3n native
+    enableTranslation: boolean; // Enable audio translation features
+    enableAnalysis: boolean; // Enable audio analysis beyond speech
+    showOptionsOnUpload: boolean; // Show audio options modal when uploading
+    defaultAction: 'attach' | 'transcribe' | 'translate' | 'analyze'; // Default action for audio uploads
+  };
   storage: {
     cacheLargeModels: boolean; // Cache models >500MB (uses more disk space but faster subsequent loads)
   };

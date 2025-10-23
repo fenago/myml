@@ -16,12 +16,16 @@ import { Particles } from './components/Particles';
 import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
+import { AudioService } from './services/AudioService';
 import { functionService } from './services/FunctionService';
 import { videoProcessingService } from './services/VideoProcessingService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
 import { formatFunctionResult } from './utils/formatFunctionResult';
+
+// Create audio service instance
+const audioService = new AudioService(inferenceEngine);
 
 export function App() {
   const [showChat, setShowChat] = useState(false);
@@ -122,7 +126,7 @@ export function App() {
   const handleSendMessage = async (input: MultimodalInput) => {
     if (!currentConversationId) return;
 
-    const { text, imageFiles, audioFiles, videoFiles } = input;
+    const { text, imageFiles, audioFiles, videoFiles, audioAction, audioTranslationOptions, audioAnalysisOptions } = input;
     const hasMultimodal =
       (imageFiles && imageFiles.length > 0) ||
       (audioFiles && audioFiles.length > 0) ||
@@ -209,9 +213,89 @@ export function App() {
         }
 
         if (audioFiles) {
-          for (const file of audioFiles) {
-            const audioSource = await fileToDataURL(file);
-            multimodalInputs.push({ audioSource });
+          // Handle audio based on selected action
+          if (audioAction === 'transcribe') {
+            // Transcribe audio using selected ASR provider
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `🎤 Transcribing audio using ${settings.audio.asrProvider === 'gemma' ? 'Gemma 3n' : 'Web Speech API'}...`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of audioFiles) {
+              const audioSource = await fileToDataURL(file);
+
+              if (settings.audio.asrProvider === 'gemma') {
+                const result = await audioService.transcribeWithGemma(audioSource);
+                multimodalInputs.push({ text: `[Transcription]: ${result.text}` });
+              } else {
+                // For Web Speech API, just attach the audio and let user use mic button
+                multimodalInputs.push({ audioSource });
+              }
+            }
+          } else if (audioAction === 'translate' && audioTranslationOptions) {
+            // Translate audio between languages
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `🌐 Translating audio from ${audioTranslationOptions.sourceLanguage} to ${audioTranslationOptions.targetLanguage}...`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of audioFiles) {
+              const audioSource = await fileToDataURL(file);
+              const result = await audioService.translateAudio(
+                audioSource,
+                audioTranslationOptions.sourceLanguage,
+                audioTranslationOptions.targetLanguage
+              );
+
+              const translationMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**Original (${result.sourceLanguage}):**\n${result.originalText}\n\n**Translated (${result.targetLanguage}):**\n${result.translatedText}`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, translationMessage);
+            }
+          } else if (audioAction === 'analyze' && audioAnalysisOptions) {
+            // Analyze audio for sounds, emotions, scenes
+            const analysisTypeLabels = {
+              speech: 'Speech Analysis',
+              sounds: 'Sound Recognition',
+              emotion: 'Emotion Detection',
+              scene: 'Scene Understanding'
+            };
+
+            const infoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `🔍 Performing ${analysisTypeLabels[audioAnalysisOptions.analysisType]}...`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, infoMessage);
+
+            for (const file of audioFiles) {
+              const audioSource = await fileToDataURL(file);
+              const result = await audioService.analyzeAudio(audioSource, audioAnalysisOptions.analysisType);
+
+              const analysisMessage: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: `**${analysisTypeLabels[audioAnalysisOptions.analysisType]}:**\n\n${result.findings}`,
+                timestamp: new Date(),
+              };
+              addMessage(currentConversationId, analysisMessage);
+            }
+          } else {
+            // Default: just attach the audio
+            for (const file of audioFiles) {
+              const audioSource = await fileToDataURL(file);
+              multimodalInputs.push({ audioSource });
+            }
           }
         }
 

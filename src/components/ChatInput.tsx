@@ -11,6 +11,7 @@ import { voiceService } from '../services/VoiceService';
 import { useStore } from '../store/useStore';
 import { NeonGlowButton } from './microinteractions/NeonGlowButton';
 import { useRipple } from '../hooks/useRipple';
+import { AudioOptionsModal, type AudioAction, type AudioTranslationOptions, type AudioAnalysisOptions } from './AudioOptionsModal';
 
 // Lazy load heavy modal components for better performance
 const CameraCapture = lazy(() => import('./CameraCapture').then(m => ({ default: m.CameraCapture })));
@@ -22,6 +23,9 @@ export interface MultimodalInput {
   imageFiles?: File[];
   audioFiles?: File[];
   videoFiles?: File[];
+  audioAction?: AudioAction;
+  audioTranslationOptions?: AudioTranslationOptions;
+  audioAnalysisOptions?: AudioAnalysisOptions;
 }
 
 interface Props {
@@ -37,6 +41,9 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [audioFiles, setAudioFiles] = useState<File[]>([]);
   const [audioFileDurations, setAudioFileDurations] = useState<number[]>([]);
+  const [audioAction, setAudioAction] = useState<AudioAction>('attach');
+  const [audioTranslationOptions, setAudioTranslationOptions] = useState<AudioTranslationOptions | undefined>();
+  const [audioAnalysisOptions, setAudioAnalysisOptions] = useState<AudioAnalysisOptions | undefined>();
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -45,6 +52,8 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [showCameraCapture, setShowCameraCapture] = useState(false);
   const [showScreenCapture, setShowScreenCapture] = useState(false);
   const [showMicrophoneStream, setShowMicrophoneStream] = useState(false);
+  const [showAudioOptionsModal, setShowAudioOptionsModal] = useState(false);
+  const [pendingAudioFile, setPendingAudioFile] = useState<{ file: File; duration: number } | null>(null);
   const { settings } = useStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -62,12 +71,18 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
         imageFiles: imageFiles.length > 0 ? imageFiles : undefined,
         audioFiles: audioFiles.length > 0 ? audioFiles : undefined,
         videoFiles: videoFiles.length > 0 ? videoFiles : undefined,
+        audioAction: audioFiles.length > 0 ? audioAction : undefined,
+        audioTranslationOptions: audioAction === 'translate' ? audioTranslationOptions : undefined,
+        audioAnalysisOptions: audioAction === 'analyze' ? audioAnalysisOptions : undefined,
       });
       setInput('');
       setImageFiles([]);
       setAudioFiles([]);
       setAudioFileDurations([]);
       setVideoFiles([]);
+      setAudioAction('attach');
+      setAudioTranslationOptions(undefined);
+      setAudioAnalysisOptions(undefined);
       setShowAttachMenu(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -97,13 +112,48 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     // Calculate durations for all audio files
     const durations = await Promise.all(files.map(file => getAudioDuration(file)));
 
-    setAudioFiles(prev => [...prev, ...files]);
-    setAudioFileDurations(prev => [...prev, ...durations]);
+    // If user wants to show options modal for the first file
+    if (settings.audio.showOptionsOnUpload && files.length > 0) {
+      setPendingAudioFile({ file: files[0], duration: durations[0] });
+      setShowAudioOptionsModal(true);
+
+      // Add remaining files directly
+      if (files.length > 1) {
+        setAudioFiles(prev => [...prev, ...files.slice(1)]);
+        setAudioFileDurations(prev => [...prev, ...durations.slice(1)]);
+      }
+    } else {
+      // Add all files directly without showing modal
+      setAudioFiles(prev => [...prev, ...files]);
+      setAudioFileDurations(prev => [...prev, ...durations]);
+    }
+
     setShowAttachMenu(false);
+  };
+
+  const handleAudioModalAction = (
+    action: AudioAction,
+    translationOptions?: AudioTranslationOptions,
+    analysisOptions?: AudioAnalysisOptions
+  ) => {
+    if (pendingAudioFile) {
+      // Add the audio file
+      setAudioFiles(prev => [...prev, pendingAudioFile.file]);
+      setAudioFileDurations(prev => [...prev, pendingAudioFile.duration]);
+
+      // Set the action and options
+      setAudioAction(action);
+      setAudioTranslationOptions(translationOptions);
+      setAudioAnalysisOptions(analysisOptions);
+
+      // Clear pending file
+      setPendingAudioFile(null);
+    }
   };
 
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -807,6 +857,20 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
           </Suspense>
         )}
       </AnimatePresence>
+
+      {/* Audio Options Modal */}
+      {pendingAudioFile && (
+        <AudioOptionsModal
+          isOpen={showAudioOptionsModal}
+          fileName={pendingAudioFile.file.name}
+          duration={pendingAudioFile.duration}
+          onClose={() => {
+            setShowAudioOptionsModal(false);
+            setPendingAudioFile(null);
+          }}
+          onAction={handleAudioModalAction}
+        />
+      )}
     </div>
   );
 }

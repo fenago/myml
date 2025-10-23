@@ -105,6 +105,13 @@ export const useStore = create<AppState>((set) => ({
       responseLanguage: 'en', // English default
       audioTranscriptionLanguage: 'en-US', // US English default
     },
+    audio: {
+      asrProvider: 'web-speech', // Default to Web Speech API (widely supported)
+      enableTranslation: true, // Enable audio translation features
+      enableAnalysis: true, // Enable audio analysis beyond speech
+      showOptionsOnUpload: true, // Show audio options modal when uploading
+      defaultAction: 'attach', // Default action for audio uploads
+    },
     storage: {
       cacheLargeModels: false, // Don't cache large models by default (prevents memory errors)
     },

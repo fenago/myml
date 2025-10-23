@@ -1050,6 +1050,128 @@ function LanguageTab({ languages, availableVoices, settings, updateSettings }: a
           </div>
         )}
       </div>
+
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Advanced Audio Features</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Configure Gemma 3n's advanced audio capabilities
+        </p>
+
+        <div className="space-y-3">
+          {/* ASR Provider */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Speech Recognition Provider
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => updateSettings({ audio: { ...settings.audio, asrProvider: 'web-speech' } })}
+                className={`p-3 rounded-lg border-2 transition-all text-left ${
+                  settings.audio.asrProvider === 'web-speech'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-blue-500/50'
+                }`}
+              >
+                <div className="font-medium text-gray-900 dark:text-white">Web Speech API</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">Browser-native (fast)</div>
+              </button>
+              <button
+                onClick={() => updateSettings({ audio: { ...settings.audio, asrProvider: 'gemma' } })}
+                className={`p-3 rounded-lg border-2 transition-all text-left ${
+                  settings.audio.asrProvider === 'gemma'
+                    ? 'border-purple-500 bg-purple-500/10'
+                    : 'border-gray-300 dark:border-gray-700 hover:border-purple-500/50'
+                }`}
+              >
+                <div className="font-medium text-gray-900 dark:text-white">Gemma 3n</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AI-powered (accurate)</div>
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              {settings.audio.asrProvider === 'gemma'
+                ? '✨ Uses Gemma 3n for higher quality transcription'
+                : '⚡ Uses browser API for fast transcription'}
+            </p>
+          </div>
+
+          {/* Audio Translation */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Audio Translation</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Translate audio between languages (EN↔ES/FR/IT/PT)
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.audio.enableTranslation}
+                onChange={(e) => updateSettings({ audio: { ...settings.audio, enableTranslation: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Audio Analysis */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Audio Analysis</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Detect sounds, emotions, and audio scenes
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.audio.enableAnalysis}
+                onChange={(e) => updateSettings({ audio: { ...settings.audio, enableAnalysis: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Show Options on Upload */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <div>
+              <h4 className="font-medium text-gray-900 dark:text-white">Audio Options Dialog</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Show options when uploading audio files
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.audio.showOptionsOnUpload}
+                onChange={(e) => updateSettings({ audio: { ...settings.audio, showOptionsOnUpload: e.target.checked } })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          {/* Default Action */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+              Default Audio Action
+            </label>
+            <select
+              value={settings.audio.defaultAction}
+              onChange={(e) => updateSettings({ audio: { ...settings.audio, defaultAction: e.target.value as any } })}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="attach">📎 Just Attach</option>
+              <option value="transcribe">🎤 Transcribe Speech</option>
+              <option value="translate">🌐 Translate Audio</option>
+              <option value="analyze">🔍 Analyze Audio</option>
+            </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Used when audio options dialog is disabled
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
