@@ -516,9 +516,21 @@ export function App() {
         // Accumulate text locally - MediaPipe sends INCREMENTAL chunks
         let accumulatedText = '';
 
+        // Build conversation history for context (last 10 messages to avoid token overflow)
+        const currentConv = useStore.getState().conversations[currentConversationId];
+        const recentMessages = currentConv.messages.slice(-10); // Last 10 messages
+        const conversationHistory = recentMessages
+          .map((msg: Message) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+          .join('\n\n');
+
+        // Append current user message to history
+        const fullPrompt = conversationHistory
+          ? `${conversationHistory}\n\nUser: ${text || ''}`
+          : `User: ${text || ''}`;
+
         // Generate streaming response with verbosity control, system prompts, structured output, and safety
         await inferenceEngine.generateStreaming(
-          text || '',
+          fullPrompt,
           {
             maxTokens: 512,
             temperature: 0.8,

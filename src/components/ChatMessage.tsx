@@ -187,7 +187,7 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
       }
       className={`flex mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`flex items-start gap-3 max-w-[70%] min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex items-start gap-3 max-w-[70%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         {!isUser && (
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
@@ -198,19 +198,19 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
         )}
 
         {/* Message Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1">
           <div className="relative group">
             <div
               ref={cardRef}
               className={`
-                px-4 py-3 rounded-2xl overflow-hidden
+                px-4 py-3 rounded-2xl
                 ${
                   isUser
                     ? 'bg-muted text-foreground rounded-br-sm'
                     : 'bg-card border border-border text-foreground rounded-bl-sm'
                 }
               `}
-              style={{ wordWrap: 'break-word', overflowWrap: 'break-word', ...cardStyle }}
+              style={{ wordWrap: 'break-word', overflowWrap: 'break-word', width: '100%', ...cardStyle }}
             >
               {isUser ? (
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
