@@ -44,7 +44,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set) => ({
   // Initial state
-  currentModelId: 'gemma3nE2B', // Default to multimodal E2B
+  currentModelId: 'gemma3nE2B', // Default to MADDY E2B (multimodal)
   modelStatus: 'not-loaded',
   loadProgress: null,
 
@@ -88,7 +88,7 @@ export const useStore = create<AppState>((set) => ({
       audioTranscriptionLanguage: 'en-US', // US English default
     },
     storage: {
-      cacheLargeModels: true, // Cache large models by default (faster subsequent loads)
+      cacheLargeModels: false, // Don't cache large models by default (prevents memory errors)
     },
   },
 

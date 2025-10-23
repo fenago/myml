@@ -84,15 +84,31 @@ export function App() {
 
       // Show detailed error message
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(
-        `Failed to load model: ${config.name}\n\n` +
-        `Error: ${errorMessage}\n\n` +
-        `URL: ${config.url}\n\n` +
-        `Please verify:\n` +
-        `1. The model file exists at the URL above\n` +
-        `2. CORS is enabled on your CloudFlare R2 bucket\n` +
-        `3. You have enough memory (need ${(config.size / 1024 / 1024 / 1024).toFixed(1)} GB)`
-      );
+
+      // Check if it's a memory allocation error
+      const isMemoryError = errorMessage.toLowerCase().includes('memory') ||
+                           errorMessage.toLowerCase().includes('array buffer');
+
+      if (isMemoryError) {
+        // Memory-specific error message
+        alert(
+          `❌ Failed to load model: ${config.name}\n\n` +
+          `${errorMessage}\n\n` +
+          `💡 Quick Fix:\n` +
+          `Try switching to CAESAR 270M (only 297 MB) which works reliably on all devices.\n\n` +
+          `You can change models by refreshing the page.`
+        );
+      } else {
+        // General error message
+        alert(
+          `❌ Failed to load model: ${config.name}\n\n` +
+          `Error: ${errorMessage}\n\n` +
+          `Please verify:\n` +
+          `1. The model file exists at: ${config.url}\n` +
+          `2. You have a stable internet connection\n` +
+          `3. You have enough memory (need ${(config.size / 1024 / 1024 / 1024).toFixed(1)} GB)`
+        );
+      }
     }
   };
 

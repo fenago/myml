@@ -124,15 +124,28 @@ export class ModelLoader {
       return new ArrayBuffer(0);
     }
 
-    // Concatenate all chunks
-    const concatenated = new Uint8Array(loaded);
-    let position = 0;
-    for (const chunk of chunks) {
-      concatenated.set(chunk, position);
-      position += chunk.length;
-    }
+    // Concatenate all chunks - with error handling for large allocations
+    try {
+      const concatenated = new Uint8Array(loaded);
+      let position = 0;
+      for (const chunk of chunks) {
+        concatenated.set(chunk, position);
+        position += chunk.length;
+      }
 
-    return concatenated.buffer;
+      return concatenated.buffer;
+    } catch (error) {
+      // ArrayBuffer allocation failed - likely out of memory
+      const errorMessage = `Failed to allocate memory for model ${config.name} (${this.formatBytes(loaded)}). ` +
+        `Your browser may not have enough memory available. ` +
+        `Try:\n` +
+        `1. Switching to a smaller model (CAESAR 270M uses only 297 MB)\n` +
+        `2. Disabling "Cache Large Models" in Settings\n` +
+        `3. Closing other tabs to free up memory`;
+
+      console.error('❌ ArrayBuffer allocation failed:', error);
+      throw new Error(errorMessage);
+    }
   }
 
   /**
