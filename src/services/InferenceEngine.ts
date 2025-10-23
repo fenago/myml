@@ -67,11 +67,24 @@ export class InferenceEngine {
   }
 
   /**
+   * Get system instruction based on verbosity setting
+   */
+  private getVerbosityInstruction(verbosity: 'concise' | 'balanced' | 'detailed'): string {
+    const instructions = {
+      concise: 'Be brief and concise. Provide direct answers without unnecessary elaboration. Focus on essential information only.',
+      balanced: 'Provide clear explanations with moderate detail. Balance thoroughness with brevity.',
+      detailed: 'Provide comprehensive and thorough explanations with examples when helpful. Be detailed in your responses.'
+    };
+    return instructions[verbosity];
+  }
+
+  /**
    * Generate text response
    */
   async generate(
     prompt: string,
-    options: GenerationOptions
+    options: GenerationOptions,
+    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise'
   ): Promise<GenerationResult> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
@@ -80,8 +93,12 @@ export class InferenceEngine {
     console.log('🤖 Generating response with MediaPipe...');
 
     try {
+      // Add verbosity instruction to prompt
+      const systemInstruction = this.getVerbosityInstruction(verbosity);
+      const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
+
       // Format prompt for GEMMA models
-      const formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model\n`;
+      const formattedPrompt = `<start_of_turn>user\n${enhancedPrompt}<end_of_turn>\n<start_of_turn>model\n`;
 
       const startTime = Date.now();
       let response = '';
@@ -131,7 +148,8 @@ export class InferenceEngine {
   async generateStreaming(
     prompt: string,
     options: GenerationOptions,
-    onToken: (token: string, isDone: boolean, metadata?: MessageMetadata) => void
+    onToken: (token: string, isDone: boolean, metadata?: MessageMetadata) => void,
+    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise'
   ): Promise<void> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
@@ -140,7 +158,11 @@ export class InferenceEngine {
     console.log('🤖 Generating streaming response...');
 
     try {
-      const formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model\n`;
+      // Add verbosity instruction to prompt
+      const systemInstruction = this.getVerbosityInstruction(verbosity);
+      const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
+
+      const formattedPrompt = `<start_of_turn>user\n${enhancedPrompt}<end_of_turn>\n<start_of_turn>model\n`;
 
       const startTime = Date.now();
       let firstTokenTime: number | null = null;

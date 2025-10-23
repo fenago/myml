@@ -95,6 +95,9 @@ export const useStore = create<AppState>((set) => ({
       enableFunctionCalling: true, // Enabled by default
       availableFunctions: ['weather_openmeteo'], // Weather function enabled by default
     },
+    responseStyle: {
+      verbosity: 'concise', // Concise by default (was too verbose before)
+    },
   },
 
   // Actions

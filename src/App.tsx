@@ -280,7 +280,7 @@ export function App() {
         // Accumulate text locally - MediaPipe sends INCREMENTAL chunks
         let accumulatedText = '';
 
-        // Generate streaming response
+        // Generate streaming response with verbosity control
         await inferenceEngine.generateStreaming(
           text || '',
           {
@@ -298,7 +298,8 @@ export function App() {
               content: accumulatedText,
               ...(isDone && metadata ? { metadata } : {}),
             });
-          }
+          },
+          settings.responseStyle.verbosity // Pass verbosity setting
         );
       }
     } catch (error) {

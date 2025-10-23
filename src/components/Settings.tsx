@@ -200,6 +200,64 @@ export function Settings({ onClose }: Props) {
             </div>
           </section>
 
+          {/* Response Style */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Response Style</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Control the length and detail of AI responses.
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Verbosity</label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => updateSettings({ responseStyle: { verbosity: 'concise' } })}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    settings.responseStyle.verbosity === 'concise'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="font-semibold">Concise</div>
+                  <div className={`text-xs mt-1 ${settings.responseStyle.verbosity === 'concise' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    Brief & to-the-point
+                  </div>
+                </button>
+                <button
+                  onClick={() => updateSettings({ responseStyle: { verbosity: 'balanced' } })}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    settings.responseStyle.verbosity === 'balanced'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="font-semibold">Balanced</div>
+                  <div className={`text-xs mt-1 ${settings.responseStyle.verbosity === 'balanced' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    Moderate detail
+                  </div>
+                </button>
+                <button
+                  onClick={() => updateSettings({ responseStyle: { verbosity: 'detailed' } })}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    settings.responseStyle.verbosity === 'detailed'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="font-semibold">Detailed</div>
+                  <div className={`text-xs mt-1 ${settings.responseStyle.verbosity === 'detailed' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    Comprehensive
+                  </div>
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-3">
+                {settings.responseStyle.verbosity === 'concise' && 'Responses will be brief and focused, ideal for quick answers.'}
+                {settings.responseStyle.verbosity === 'balanced' && 'Responses will provide moderate detail with clear explanations.'}
+                {settings.responseStyle.verbosity === 'detailed' && 'Responses will be thorough with extensive explanations and examples.'}
+              </p>
+            </div>
+          </section>
+
           {/* Microinteractions */}
           <section>
             <h3 className="text-xl font-medium text-gray-900 mb-4">Visual Effects</h3>

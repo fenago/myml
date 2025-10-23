@@ -114,4 +114,7 @@ export interface AppSettings {
     enableFunctionCalling: boolean; // Enable/disable function calling globally
     availableFunctions: string[]; // IDs of enabled functions
   };
+  responseStyle: {
+    verbosity: 'concise' | 'balanced' | 'detailed'; // Control response length
+  };
 }

@@ -47,7 +47,7 @@ export class ExportService {
 
     conversation.messages.forEach((msg, index) => {
       const timestamp = new Date(msg.timestamp).toLocaleString();
-      const role = msg.role === 'user' ? '👤 User' : '🤖 Assistant';
+      const role = msg.role === 'user' ? 'User' : 'Assistant';
 
       markdown += `## ${role} - ${timestamp}\n\n`;
       markdown += `${msg.content}\n\n`;
@@ -73,19 +73,19 @@ export class ExportService {
    */
   exportAsText(conversation: Conversation): void {
     const model = getModelConfig(conversation.modelId);
-    let text = `=== Conversation Export ===\n\n`;
+    let text = `CONVERSATION EXPORT\n\n`;
     text += `Model: ${model.name} (${model.id})\n`;
     text += `Created: ${new Date(conversation.createdAt).toLocaleString()}\n`;
     text += `Updated: ${new Date(conversation.updatedAt).toLocaleString()}\n`;
     text += `Messages: ${conversation.messages.length}\n\n`;
-    text += `${'='.repeat(60)}\n\n`;
+    text += `${'─'.repeat(60)}\n\n`;
 
     conversation.messages.forEach((msg, index) => {
       const timestamp = new Date(msg.timestamp).toLocaleString();
-      const role = msg.role === 'user' ? 'USER' : 'ASSISTANT';
+      const role = msg.role === 'user' ? 'User' : 'Assistant';
 
-      text += `[${role}] ${timestamp}\n`;
-      text += `${'-'.repeat(60)}\n`;
+      text += `${role} • ${timestamp}\n`;
+      text += `${'─'.repeat(60)}\n`;
       text += `${msg.content}\n\n`;
 
       if (index < conversation.messages.length - 1) {
@@ -110,19 +110,23 @@ export class ExportService {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversation Export - ${model.name}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
-      color: #333;
+      color: #1f2937;
       max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
       background: #f9fafb;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -211,7 +215,7 @@ export class ExportService {
 </head>
 <body>
   <header>
-    <h1>💬 Conversation Export</h1>
+    <h1>Conversation Export</h1>
     <p><strong>Model:</strong> ${model.name} (${model.id})</p>
     <p><strong>Created:</strong> ${new Date(conversation.createdAt).toLocaleString()}</p>
     <p><strong>Messages:</strong> ${conversation.messages.length}</p>
@@ -223,7 +227,7 @@ export class ExportService {
     conversation.messages.forEach((msg) => {
       const timestamp = new Date(msg.timestamp).toLocaleString();
       const roleClass = msg.role === 'user' ? 'user' : 'assistant';
-      const roleLabel = msg.role === 'user' ? '👤 User' : '🤖 Assistant';
+      const roleLabel = msg.role === 'user' ? 'User' : 'Assistant';
 
       html += `
     <div class="message">
