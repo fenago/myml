@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -14,6 +14,8 @@ import { TypingIndicator } from './TypingIndicator';
 import { TextShimmer } from './TextShimmer';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { ContextIndicator } from './microinteractions/ContextIndicator';
+import { useKonamiCode } from '../hooks/useKonamiCode';
+import { applyTheme, getThemeByCommand, getThemeById, resetTheme, loadSavedTheme } from '../config/themes';
 
 // Lazy load Settings for better initial load performance
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
@@ -34,6 +36,9 @@ export function ChatInterface({ onSendMessage }: Props) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [showSummary, setShowSummary] = useState(true);
+  const [_currentTheme, setCurrentTheme] = useState<string | null>(null);
+  const [showThemeNotification, setShowThemeNotification] = useState(false);
+  const [themeNotificationText, setThemeNotificationText] = useState('');
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -58,6 +63,57 @@ export function ChatInterface({ onSendMessage }: Props) {
       action: () => setShowSettings(false),
     },
   ]);
+
+  // Konami code easter egg - activates Matrix theme
+  useKonamiCode(() => {
+    if (settings.easterEggs.konamiCode) {
+      const matrixTheme = getThemeById('matrix');
+      if (matrixTheme) {
+        applyTheme(matrixTheme);
+        setCurrentTheme('matrix');
+        setThemeNotificationText('🎮 Matrix Mode Activated! 🟢');
+        setShowThemeNotification(true);
+        setTimeout(() => setShowThemeNotification(false), 3000);
+      }
+    }
+  });
+
+  // Load saved theme on mount
+  useEffect(() => {
+    if (settings.easterEggs.hiddenThemes) {
+      const savedTheme = loadSavedTheme();
+      if (savedTheme) {
+        setCurrentTheme(savedTheme.id);
+      }
+    }
+  }, [settings.easterEggs.hiddenThemes]);
+
+  // Handle theme commands in messages
+  const handleThemeCommand = (text: string) => {
+    if (!settings.easterEggs.hiddenThemes) return false;
+
+    const theme = getThemeByCommand(text.toLowerCase().trim());
+    if (theme) {
+      applyTheme(theme);
+      setCurrentTheme(theme.id);
+      setThemeNotificationText(`🎨 ${theme.name} theme activated!`);
+      setShowThemeNotification(true);
+      setTimeout(() => setShowThemeNotification(false), 3000);
+      return true;
+    }
+
+    // Reset theme command
+    if (text.toLowerCase().trim() === '/reset') {
+      resetTheme();
+      setCurrentTheme(null);
+      setThemeNotificationText('🔄 Theme reset to default');
+      setShowThemeNotification(true);
+      setTimeout(() => setShowThemeNotification(false), 3000);
+      return true;
+    }
+
+    return false;
+  };
 
   const currentConversation = currentConversationId
     ? conversations[currentConversationId]
@@ -432,7 +488,15 @@ export function ChatInterface({ onSendMessage }: Props) {
 
       {/* Input Area */}
       <ChatInput
-        onSend={onSendMessage}
+        onSend={(input) => {
+          // Check for theme commands before sending
+          if (input.text && handleThemeCommand(input.text)) {
+            // Theme command was handled, don't send message
+            return;
+          }
+          // Regular message
+          onSendMessage(input);
+        }}
         disabled={isGenerating}
         supportMultimodal={currentModel.capabilities.length > 1}
         placeholder={
@@ -461,6 +525,32 @@ export function ChatInterface({ onSendMessage }: Props) {
           <Settings onClose={() => setShowSettings(false)} />
         </Suspense>
       )}
+
+      {/* Theme Notification Toast */}
+      <AnimatePresence>
+        {showThemeNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50"
+          >
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-full shadow-lg backdrop-blur-sm flex items-center gap-3">
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+              >
+                ✨
+              </motion.div>
+              <span className="font-medium">{themeNotificationText}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -302,47 +302,110 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Drag and Drop Overlay */}
+      {/* Drag and Drop Overlay - Enhanced with pulsing animation */}
       {isDragging && supportMultimodal && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-blue-500/10 backdrop-blur-sm border-2 border-dashed border-blue-500 rounded-2xl z-50 flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            borderColor: ['rgb(59, 130, 246)', 'rgb(139, 92, 246)', 'rgb(59, 130, 246)'],
+          }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{
+            borderColor: {
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            },
+          }}
+          className="absolute inset-0 bg-blue-500/10 backdrop-blur-sm border-4 border-dashed rounded-2xl z-50 flex items-center justify-center"
         >
-          <div className="text-center">
-            <svg className="w-16 h-16 mx-auto mb-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <motion.div
+            className="text-center"
+            animate={{
+              y: [0, -10, 0],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <motion.svg
+              className="w-16 h-16 mx-auto mb-4 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              animate={{
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <p className="text-lg font-medium text-blue-600">Drop files here</p>
+            </motion.svg>
+            <p className="text-lg font-medium text-blue-600">Drop to attach</p>
             <p className="text-sm text-blue-500 mt-1">Images, videos, and audio supported</p>
-          </div>
+          </motion.div>
         </motion.div>
       )}
 
-      {/* File Previews */}
+      {/* File Previews - Enhanced with animations */}
       {(imageFiles.length > 0 || audioFiles.length > 0 || videoFiles.length > 0) && (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-3 flex flex-wrap gap-2"
+        >
           {imageFiles.map((file, index) => (
-            <div key={`img-${index}`} className="relative group">
+            <motion.div
+              key={`img-${index}`}
+              initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.5, rotate: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="relative group"
+            >
               <img
                 src={URL.createObjectURL(file)}
                 alt={file.name}
-                className="h-20 w-20 object-cover rounded-lg border border-border"
+                className="h-20 w-20 object-cover rounded-lg border-2 border-green-500/50"
               />
+              {/* Success checkmark */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 500, damping: 20 }}
+                className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+              >
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
               <button
                 onClick={() => removeImage(index)}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 ×
               </button>
-            </div>
+            </motion.div>
           ))}
           {videoFiles.map((file, index) => (
-            <div key={`video-${index}`} className="relative group">
+            <motion.div
+              key={`video-${index}`}
+              initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.5, rotate: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
+              className="relative group"
+            >
               <video
                 src={URL.createObjectURL(file)}
-                className="h-20 w-32 object-cover rounded-lg border border-border"
+                className="h-20 w-32 object-cover rounded-lg border-2 border-purple-500/50"
                 muted
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
@@ -350,13 +413,24 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
                   <path d="M8 5v14l11-7z"/>
                 </svg>
               </div>
+              {/* Success checkmark */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 + index * 0.05, type: 'spring', stiffness: 500, damping: 20 }}
+                className="absolute top-1 right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center"
+              >
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
               <button
                 onClick={() => removeVideo(index)}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 ×
               </button>
-            </div>
+            </motion.div>
           ))}
           {audioFiles.map((file, index) => {
             const duration = audioFileDurations[index] || 0;
@@ -365,24 +439,49 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
             const durationText = duration > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : 'Loading...';
 
             return (
-              <div key={`audio-${index}`} className="relative group px-3 py-2 bg-muted rounded-lg border border-border flex items-center gap-2">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <motion.div
+                key={`audio-${index}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25, delay: index * 0.05 }}
+                className="relative group px-3 py-2 bg-muted rounded-lg border-2 border-cyan-500/50 flex items-center gap-2"
+              >
+                <motion.svg
+                  initial={{ rotate: -180, scale: 0 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ delay: 0.1 + index * 0.05, type: 'spring', stiffness: 400, damping: 20 }}
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                </svg>
+                </motion.svg>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{file.name}</p>
                   <p className="text-xs text-muted-foreground">{durationText}</p>
                 </div>
+                {/* Success checkmark */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2 + index * 0.05, type: 'spring', stiffness: 500, damping: 20 }}
+                  className="w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0"
+                >
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                  </svg>
+                </motion.div>
                 <button
                   onClick={() => removeAudio(index)}
                   className="w-4 h-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   ×
                 </button>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       <motion.div
