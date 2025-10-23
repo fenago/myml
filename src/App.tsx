@@ -17,6 +17,7 @@ import { useStore } from './store/useStore';
 import { modelLoader } from './services/ModelLoader';
 import { inferenceEngine } from './services/InferenceEngine';
 import { functionService } from './services/FunctionService';
+import { videoProcessingService } from './services/VideoProcessingService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -216,8 +217,27 @@ export function App() {
 
         if (videoFiles) {
           for (const file of videoFiles) {
-            const videoSource = await fileToDataURL(file);
-            multimodalInputs.push({ videoSource });
+            // Extract frames from video
+            const processingResult = await videoProcessingService.extractFrames(
+              file,
+              1, // Extract 1 frame per second
+              10, // Max 10 frames
+              settings.imageResolution + 'x' + settings.imageResolution
+            );
+
+            // Add info message about frame extraction
+            const frameInfoMessage: Message = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: `📹 Extracted ${processingResult.frames.length} frames from video (${processingResult.duration.toFixed(1)}s duration, ${processingResult.width}x${processingResult.height})`,
+              timestamp: new Date(),
+            };
+            addMessage(currentConversationId, frameInfoMessage);
+
+            // Add each frame as an image
+            for (const frame of processingResult.frames) {
+              multimodalInputs.push({ imageSource: frame.dataURL });
+            }
           }
         }
 
