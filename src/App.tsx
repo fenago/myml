@@ -140,7 +140,6 @@ export function App() {
 
     try {
       // Check for function calling
-      let functionResult: any = null;
       if (settings.functions.enableFunctionCalling && text) {
         const functionCall = functionService.detectFunctionCall(text);
 
@@ -161,7 +160,6 @@ export function App() {
 
           if (result.success) {
             console.log('✅ Function executed successfully:', result);
-            functionResult = result.result;
 
             // Add function result message
             const resultMessage: Message = {

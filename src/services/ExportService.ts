@@ -6,7 +6,7 @@
  */
 
 import type { Conversation } from '../types';
-import { getModelConfig } from '../config/models';
+import { getModelConfig, type ModelId } from '../config/models';
 
 export class ExportService {
   /**
@@ -16,7 +16,7 @@ export class ExportService {
     const data = {
       id: conversation.id,
       modelId: conversation.modelId,
-      modelName: getModelConfig(conversation.modelId).name,
+      modelName: getModelConfig(conversation.modelId as ModelId).name,
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
       messageCount: conversation.messages.length,
@@ -37,7 +37,7 @@ export class ExportService {
    * Export conversation as Markdown
    */
   exportAsMarkdown(conversation: Conversation): void {
-    const model = getModelConfig(conversation.modelId);
+    const model = getModelConfig(conversation.modelId as ModelId);
     let markdown = `# Conversation Export\n\n`;
     markdown += `**Model**: ${model.name} (${model.id})\n`;
     markdown += `**Created**: ${new Date(conversation.createdAt).toLocaleString()}\n`;
@@ -72,7 +72,7 @@ export class ExportService {
    * Export conversation as plain text
    */
   exportAsText(conversation: Conversation): void {
-    const model = getModelConfig(conversation.modelId);
+    const model = getModelConfig(conversation.modelId as ModelId);
     let text = `CONVERSATION EXPORT\n\n`;
     text += `Model: ${model.name} (${model.id})\n`;
     text += `Created: ${new Date(conversation.createdAt).toLocaleString()}\n`;
@@ -101,7 +101,7 @@ export class ExportService {
    * Export conversation as HTML (can be printed to PDF)
    */
   exportAsHTML(conversation: Conversation): void {
-    const model = getModelConfig(conversation.modelId);
+    const model = getModelConfig(conversation.modelId as ModelId);
 
     let html = `<!DOCTYPE html>
 <html lang="en">

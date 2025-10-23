@@ -8,7 +8,7 @@ import { useStore } from '../store/useStore';
 import { TextShimmer } from './TextShimmer';
 
 export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
-  const { settings, updateSettings } = useStore();
+  const { settings } = useStore();
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
