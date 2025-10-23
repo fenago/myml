@@ -5,14 +5,16 @@
  * @author Dr. Ernesto Lee
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
-import { Settings } from './Settings';
 import { TextShimmer } from './TextShimmer';
+
+// Lazy load Settings for better initial load performance
+const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
 import { getModelConfig } from '../config/models';
 import { exportService } from '../services/ExportService';
 import type { MultimodalInput } from './ChatInput';
@@ -451,7 +453,11 @@ export function ChatInterface({ onSendMessage }: Props) {
       </div>
 
       {/* Settings Modal */}
-      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+      {showSettings && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"><div className="text-white">Loading settings...</div></div>}>
+          <Settings onClose={() => setShowSettings(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

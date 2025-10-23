@@ -5,13 +5,15 @@
  * @author Dr. Ernesto Lee
  */
 
-import { useState, useRef, KeyboardEvent, useEffect } from 'react';
+import { useState, useRef, KeyboardEvent, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { voiceService } from '../services/VoiceService';
 import { useStore } from '../store/useStore';
-import { CameraCapture } from './CameraCapture';
-import { ScreenCapture } from './ScreenCapture';
-import { MicrophoneStream } from './MicrophoneStream';
+
+// Lazy load heavy modal components for better performance
+const CameraCapture = lazy(() => import('./CameraCapture').then(m => ({ default: m.CameraCapture })));
+const ScreenCapture = lazy(() => import('./ScreenCapture').then(m => ({ default: m.ScreenCapture })));
+const MicrophoneStream = lazy(() => import('./MicrophoneStream').then(m => ({ default: m.MicrophoneStream })));
 
 export interface MultimodalInput {
   text?: string;
@@ -657,32 +659,38 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
       {/* Camera Capture Modal */}
       <AnimatePresence>
         {showCameraCapture && (
-          <CameraCapture
-            onCapture={handleCameraCapture}
-            onClose={() => setShowCameraCapture(false)}
-            resolution={parseInt(settings.imageResolution)}
-          />
+          <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"><div className="text-white">Loading camera...</div></div>}>
+            <CameraCapture
+              onCapture={handleCameraCapture}
+              onClose={() => setShowCameraCapture(false)}
+              resolution={parseInt(settings.imageResolution)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* Screen Capture Modal */}
       <AnimatePresence>
         {showScreenCapture && (
-          <ScreenCapture
-            onCapture={handleScreenCapture}
-            onClose={() => setShowScreenCapture(false)}
-            resolution={parseInt(settings.imageResolution)}
-          />
+          <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"><div className="text-white">Loading screen capture...</div></div>}>
+            <ScreenCapture
+              onCapture={handleScreenCapture}
+              onClose={() => setShowScreenCapture(false)}
+              resolution={parseInt(settings.imageResolution)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* Microphone Stream Modal */}
       <AnimatePresence>
         {showMicrophoneStream && (
-          <MicrophoneStream
-            onCapture={handleMicrophoneCapture}
-            onClose={() => setShowMicrophoneStream(false)}
-          />
+          <Suspense fallback={<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"><div className="text-white">Loading recorder...</div></div>}>
+            <MicrophoneStream
+              onCapture={handleMicrophoneCapture}
+              onClose={() => setShowMicrophoneStream(false)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
     </div>
