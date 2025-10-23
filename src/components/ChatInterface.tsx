@@ -12,6 +12,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { TextShimmer } from './TextShimmer';
+import { PinnedMessages } from './PinnedMessages';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { ContextIndicator } from './microinteractions/ContextIndicator';
 import { useKonamiCode } from '../hooks/useKonamiCode';
@@ -32,7 +33,7 @@ interface Props {
 export function ChatInterface({ onSendMessage }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, setCurrentConversation, forkConversation, updateConversationSummary } = useStore();
+  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage } = useStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -163,6 +164,12 @@ export function ChatInterface({ onSendMessage }: Props) {
 
     forkConversation(currentConversationId, messageId);
     alert(`✅ Conversation forked! Created new conversation with ${messageCount + 1} messages.`);
+  };
+
+  // Handle toggle pin message
+  const handleTogglePin = (messageId: string) => {
+    if (!currentConversationId) return;
+    togglePinMessage(currentConversationId, messageId);
   };
 
   // Handle conversation summarization
@@ -465,9 +472,25 @@ export function ChatInterface({ onSendMessage }: Props) {
               </motion.div>
             )}
 
+            {/* Pinned Messages */}
+            <PinnedMessages
+              pinnedMessages={currentConversation.messages.filter(m => m.pinned)}
+              onNavigateToMessage={(messageId) => {
+                const messageElement = document.getElementById(`message-${messageId}`);
+                messageElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              onUnpin={handleTogglePin}
+            />
+
             {/* Messages */}
             {currentConversation.messages.map((message) => (
-              <ChatMessage key={message.id} message={message} onFork={handleForkConversation} />
+              <div key={message.id} id={`message-${message.id}`}>
+                <ChatMessage
+                  message={message}
+                  onFork={handleForkConversation}
+                  onTogglePin={handleTogglePin}
+                />
+              </div>
             ))}
             {isGenerating && <TypingIndicator />}
             <div ref={messagesEndRef} />

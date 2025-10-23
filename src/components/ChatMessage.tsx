@@ -19,9 +19,10 @@ import { useCardTilt } from '../hooks/useCardTilt';
 interface Props {
   message: Message;
   onFork?: (messageId: string) => void;
+  onTogglePin?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message, onFork }: Props) {
+export function ChatMessage({ message, onFork, onTogglePin }: Props) {
   const isUser = message.role === 'user';
   const { settings } = useStore();
   const [showAllMetadata, setShowAllMetadata] = useState(false);
@@ -340,6 +341,35 @@ export function ChatMessage({ message, onFork }: Props) {
                   </>
                 )}
               </button>
+
+              <span>·</span>
+
+              {/* Pin Button */}
+              {onTogglePin && (
+                <button
+                  onClick={() => onTogglePin(message.id)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted transition-colors ${
+                    message.pinned ? 'text-yellow-600' : ''
+                  }`}
+                  title={message.pinned ? 'Unpin message' : 'Pin message'}
+                >
+                  {message.pinned ? (
+                    <>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>
+                      </svg>
+                      <span>Pinned</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      <span>Pin</span>
+                    </>
+                  )}
+                </button>
+              )}
 
               {(hasAnyMetadata || settings.voice.enableOutput || onFork) && <span>·</span>}
 

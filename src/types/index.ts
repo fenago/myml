@@ -40,6 +40,7 @@ export interface Message {
   image?: string; // Base64 encoded image
   audio?: string; // Base64 encoded audio
   video?: string; // Base64 encoded video
+  pinned?: boolean; // Whether message is pinned for quick access
 }
 
 export interface Conversation {

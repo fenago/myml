@@ -32,6 +32,7 @@ interface AppState {
 
   addMessage: (conversationId: string, message: Message) => void;
   updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>) => void;
+  togglePinMessage: (conversationId: string, messageId: string) => void;
   createConversation: (modelId: ModelId) => string;
   forkConversation: (conversationId: string, fromMessageId: string) => string;
   updateConversationSummary: (conversationId: string, summary: string, summarizedUpTo: number) => void;
@@ -176,6 +177,28 @@ export const useStore = create<AppState>((set) => ({
         },
       },
     })),
+
+  togglePinMessage: (conversationId, messageId) =>
+    set((state) => {
+      const conversation = state.conversations[conversationId];
+      if (!conversation) return state;
+
+      const message = conversation.messages.find((msg) => msg.id === messageId);
+      if (!message) return state;
+
+      return {
+        conversations: {
+          ...state.conversations,
+          [conversationId]: {
+            ...conversation,
+            messages: conversation.messages.map((msg) =>
+              msg.id === messageId ? { ...msg, pinned: !msg.pinned } : msg
+            ),
+            updatedAt: new Date(),
+          },
+        },
+      };
+    }),
 
   createConversation: (modelId) => {
     const id = crypto.randomUUID();
