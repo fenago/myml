@@ -208,6 +208,9 @@ export function App() {
 
         addMessage(currentConversationId, assistantMessage);
 
+        // Accumulate text locally - MediaPipe sends INCREMENTAL chunks
+        let accumulatedText = '';
+
         // Generate streaming response
         await inferenceEngine.generateStreaming(
           text || '',
@@ -217,12 +220,29 @@ export function App() {
             topP: 0.9,
             streamTokens: true,
           },
-          (token: string, isDone: boolean, metadata?: any) => {
-            // Update message content as tokens stream in
+          (chunk: string, isDone: boolean, metadata?: any) => {
+            console.log('🔵 STREAMING UPDATE:', {
+              chunkLength: chunk.length,
+              isDone,
+              hasMetadata: !!metadata,
+              chunkPreview: chunk.substring(0, 50) + (chunk.length > 50 ? '...' : '')
+            });
+
+            // Accumulate the chunk
+            accumulatedText += chunk;
+
+            console.log('📊 ACCUMULATED TEXT:', {
+              totalLength: accumulatedText.length,
+              preview: accumulatedText.substring(0, 100) + (accumulatedText.length > 100 ? '...' : '')
+            });
+
+            // Update message with accumulated text
             updateMessage(currentConversationId, assistantMessageId, {
-              content: token,
+              content: accumulatedText,
               ...(isDone && metadata ? { metadata } : {}),
             });
+
+            console.log('🟢 Message updated in store with accumulated text');
           }
         );
       }

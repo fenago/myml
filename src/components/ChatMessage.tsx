@@ -27,6 +27,17 @@ export function ChatMessage({ message }: Props) {
 
   const metadata = message.metadata || {};
 
+  // Debug logging for assistant messages
+  useEffect(() => {
+    if (!isUser) {
+      console.log('📝 ChatMessage render:', {
+        messageId: message.id,
+        contentLength: message.content.length,
+        contentPreview: message.content.substring(0, 100) + (message.content.length > 100 ? '...' : '')
+      });
+    }
+  }, [message.content, message.id, isUser]);
+
   // Build metadata sections based on settings
   const metadataSections: { label: string; items: { key: string; value: string }[] }[] = [];
 
@@ -153,7 +164,7 @@ export function ChatMessage({ message }: Props) {
       transition={{ duration: 0.3 }}
       className={`flex mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`flex items-start gap-3 max-w-[70%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex items-start gap-3 max-w-[70%] min-w-0 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         {!isUser && (
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
@@ -162,54 +173,87 @@ export function ChatMessage({ message }: Props) {
         )}
 
         {/* Message Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div
             className={`
-              px-4 py-3 rounded-2xl
+              px-4 py-3 rounded-2xl overflow-hidden
               ${
                 isUser
                   ? 'bg-muted text-foreground rounded-br-sm'
                   : 'bg-card border border-border text-foreground rounded-bl-sm'
               }
             `}
+            style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
           >
             {isUser ? (
               <p className="text-sm leading-relaxed whitespace-pre-wrap">
                 {message.content}
               </p>
             ) : (
-              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert break-words overflow-wrap-anywhere">
+              <div
+                className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                style={{
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  maxWidth: '100%'
+                }}
+              >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                   components={{
                     // Custom styling for paragraphs
                     p: ({children}: any) => (
-                      <p className="whitespace-pre-wrap break-words mb-2 last:mb-0">
+                      <p
+                        className="mb-2 last:mb-0"
+                        style={{
+                          whiteSpace: 'pre-wrap',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}
+                      >
                         {children}
                       </p>
                     ),
                     // Custom styling for code blocks
                     code: ({node, inline, className, children, ...props}: any) => {
                       return inline ? (
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono break-words" {...props}>
+                        <code
+                          className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
+                          style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                          {...props}
+                        >
                           {children}
                         </code>
                       ) : (
-                        <code className={`${className} text-xs block whitespace-pre-wrap`} {...props}>
+                        <code
+                          className={`${className} text-xs block`}
+                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                          {...props}
+                        >
                           {children}
                         </code>
                       );
                     },
                     // Custom styling for pre blocks
                     pre: ({children}: any) => (
-                      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2 whitespace-pre-wrap break-words">
+                      <pre
+                        className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2"
+                        style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                      >
                         {children}
                       </pre>
                     ),
                     // Custom styling for links
                     a: ({children, href}: any) => (
-                      <a href={href} className="text-blue-600 hover:underline break-words" target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={href}
+                        className="text-blue-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                      >
                         {children}
                       </a>
                     ),
