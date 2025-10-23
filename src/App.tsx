@@ -57,9 +57,13 @@ export function App() {
       setModelStatus('downloading');
 
       // Load model with progress tracking
-      await modelLoader.loadModel(config, (progress) => {
-        setLoadProgress(progress);
-      });
+      await modelLoader.loadModel(
+        config,
+        (progress) => {
+          setLoadProgress(progress);
+        },
+        settings.storage.cacheLargeModels
+      );
 
       // Keep showing loading screen during MediaPipe initialization
       setModelStatus('loading');

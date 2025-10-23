@@ -87,6 +87,9 @@ export const useStore = create<AppState>((set) => ({
       responseLanguage: 'en', // English default
       audioTranscriptionLanguage: 'en-US', // US English default
     },
+    storage: {
+      cacheLargeModels: false, // Don't cache large models by default (saves space)
+    },
   },
 
   // Actions

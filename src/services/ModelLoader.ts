@@ -28,11 +28,12 @@ export class ModelLoader {
 
   /**
    * Load model with progress tracking
-   * For large models (>500MB), skip download and let MediaPipe handle it directly
+   * For large models (>500MB), optionally skip caching based on user settings
    */
   async loadModel(
     config: ModelConfig,
-    onProgress?: (progress: ModelLoadProgress) => void
+    onProgress?: (progress: ModelLoadProgress) => void,
+    cacheLargeModels: boolean = false
   ): Promise<ArrayBuffer | null> {
     const LARGE_MODEL_THRESHOLD = 500 * 1024 * 1024; // 500 MB
 
@@ -43,10 +44,11 @@ export class ModelLoader {
       return cached;
     }
 
-    // For large models, track download progress but don't cache
-    if (config.size > LARGE_MODEL_THRESHOLD) {
+    // For large models, decide whether to cache based on user preference
+    if (config.size > LARGE_MODEL_THRESHOLD && !cacheLargeModels) {
       console.log(`⚡ Large model detected: ${config.name} (${this.formatBytes(config.size)})`);
       console.log(`   Downloading with progress tracking (not caching to save space)`);
+      console.log(`   💡 Tip: Enable "Cache Large Models" in Settings to speed up future loads`);
 
       // Download with progress but don't allocate memory
       await this.downloadWithProgress(config, onProgress, true);
@@ -55,7 +57,7 @@ export class ModelLoader {
       return null; // MediaPipe will use from browser cache
     }
 
-    // For small models, download and cache
+    // For small models or when user wants to cache large models, download and cache
     console.log(`⬇️ Downloading model: ${config.name} (${this.formatBytes(config.size)})`);
     const arrayBuffer = await this.downloadWithProgress(config, onProgress);
 

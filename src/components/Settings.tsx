@@ -652,6 +652,63 @@ export function Settings({ onClose }: Props) {
             </div>
           </section>
 
+          {/* Storage Settings */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Storage Settings</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Configure how models are cached for faster subsequent loads
+            </p>
+
+            <div className="space-y-4">
+              {/* Cache Large Models Toggle */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Cache Large Models</label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Store models larger than 500MB in browser storage (uses ~3GB disk space but loads faster)
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    updateSettings({
+                      storage: {
+                        ...settings.storage,
+                        cacheLargeModels: !settings.storage.cacheLargeModels,
+                      },
+                    })
+                  }
+                  className={`
+                    relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                    ${settings.storage.cacheLargeModels ? 'bg-blue-600' : 'bg-gray-300'}
+                  `}
+                >
+                  <span
+                    className={`
+                      inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                      ${settings.storage.cacheLargeModels ? 'translate-x-6' : 'translate-x-1'}
+                    `}
+                  />
+                </button>
+              </div>
+
+              {/* Info box */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div className="text-sm text-blue-900">
+                    <p className="font-medium mb-1">How caching works:</p>
+                    <ul className="text-xs text-blue-800 space-y-1">
+                      <li>• <strong>Disabled</strong>: Models download each time but use less disk space</li>
+                      <li>• <strong>Enabled</strong>: Models are stored locally for instant loading on subsequent uses</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Model Info */}
           {currentModel && (
             <section className="bg-gray-50 rounded-xl p-6">

@@ -10,7 +10,7 @@ import { useStore } from '../store/useStore';
 import { TextShimmer } from './TextShimmer';
 
 export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
-  const { settings } = useStore();
+  const { settings, updateSettings } = useStore();
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white">
@@ -70,6 +70,60 @@ export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
         <p className="text-base text-gray-600">
           Ask anything and experience AI that respects your privacy
         </p>
+      </motion.div>
+
+      {/* Storage Option */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.3 }}
+        className="mb-4 flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-xl border border-gray-200"
+      >
+        <button
+          onClick={() =>
+            updateSettings({
+              storage: {
+                ...settings.storage,
+                cacheLargeModels: !settings.storage.cacheLargeModels,
+              },
+            })
+          }
+          className="flex items-center gap-2 group"
+        >
+          <div
+            className={`
+              w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+              ${
+                settings.storage.cacheLargeModels
+                  ? 'bg-blue-600 border-blue-600'
+                  : 'bg-white border-gray-300 group-hover:border-gray-400'
+              }
+            `}
+          >
+            {settings.storage.cacheLargeModels && (
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+          <span className="text-sm text-gray-700 group-hover:text-gray-900">
+            Cache large models for faster loading
+          </span>
+        </button>
+        <div className="group relative">
+          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-10">
+            <p className="mb-1"><strong>Uses ~3GB disk space</strong></p>
+            <p>When enabled, models are cached for instant loading on next use. Disable to save disk space (models will re-download each time).</p>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
       </motion.div>
 
       {/* Start Button */}

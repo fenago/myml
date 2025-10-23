@@ -105,4 +105,7 @@ export interface AppSettings {
     responseLanguage: string; // Default language for AI responses (ISO code)
     audioTranscriptionLanguage: string; // Default for audio transcription
   };
+  storage: {
+    cacheLargeModels: boolean; // Cache models >500MB (uses more disk space but faster subsequent loads)
+  };
 }
