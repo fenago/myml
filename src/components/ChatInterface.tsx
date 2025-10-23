@@ -34,17 +34,8 @@ export function ChatInterface({ onSendMessage }: Props) {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    console.log('🔄 AUTO-SCROLL TRIGGERED', {
-      messageCount: currentConversation?.messages.length,
-      isGenerating,
-      hasRef: !!messagesEndRef.current
-    });
-
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      console.log('✅ Scrolled to bottom');
-    } else {
-      console.warn('⚠️ messagesEndRef.current is null');
     }
   }, [currentConversation?.messages, isGenerating]);
 

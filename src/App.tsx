@@ -221,28 +221,14 @@ export function App() {
             streamTokens: true,
           },
           (chunk: string, isDone: boolean, metadata?: any) => {
-            console.log('🔵 STREAMING UPDATE:', {
-              chunkLength: chunk.length,
-              isDone,
-              hasMetadata: !!metadata,
-              chunkPreview: chunk.substring(0, 50) + (chunk.length > 50 ? '...' : '')
-            });
-
             // Accumulate the chunk
             accumulatedText += chunk;
-
-            console.log('📊 ACCUMULATED TEXT:', {
-              totalLength: accumulatedText.length,
-              preview: accumulatedText.substring(0, 100) + (accumulatedText.length > 100 ? '...' : '')
-            });
 
             // Update message with accumulated text
             updateMessage(currentConversationId, assistantMessageId, {
               content: accumulatedText,
               ...(isDone && metadata ? { metadata } : {}),
             });
-
-            console.log('🟢 Message updated in store with accumulated text');
           }
         );
       }

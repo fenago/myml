@@ -91,6 +91,10 @@ export const useStore = create<AppState>((set) => ({
     storage: {
       cacheLargeModels: false, // Don't cache large models by default (prevents memory errors)
     },
+    functions: {
+      enableFunctionCalling: true, // Enabled by default
+      availableFunctions: ['weather_openmeteo'], // Weather function enabled by default
+    },
   },
 
   // Actions

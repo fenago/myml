@@ -3,6 +3,8 @@
  * @author Dr. Ernesto Lee
  */
 
+export * from './functions';
+
 export interface MessageMetadata {
   // Performance metrics
   tokensPerSecond?: number;
@@ -107,5 +109,9 @@ export interface AppSettings {
   };
   storage: {
     cacheLargeModels: boolean; // Cache models >500MB (uses more disk space but faster subsequent loads)
+  };
+  functions: {
+    enableFunctionCalling: boolean; // Enable/disable function calling globally
+    availableFunctions: string[]; // IDs of enabled functions
   };
 }

@@ -10,6 +10,8 @@ import { useStore } from '../store/useStore';
 import { getAvailableModels, type ModelId } from '../config/models';
 import { getAllLanguages, AUDIO_TRANSCRIPTION_LANGUAGES } from '../config/languages';
 import { voiceService } from '../services/VoiceService';
+import { functionService } from '../services/FunctionService';
+import type { FunctionDefinition } from '../types';
 
 interface Props {
   onClose: () => void;
@@ -21,6 +23,7 @@ export function Settings({ onClose }: Props) {
   const currentModel = models.find(m => m.id === currentModelId);
   const languages = getAllLanguages();
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [functions, setFunctions] = useState<FunctionDefinition[]>([]);
 
   // Load available TTS voices
   useEffect(() => {
@@ -34,6 +37,11 @@ export function Settings({ onClose }: Props) {
     if (speechSynthesis.onvoiceschanged !== undefined) {
       speechSynthesis.onvoiceschanged = loadVoices;
     }
+  }, []);
+
+  // Load available functions
+  useEffect(() => {
+    setFunctions(functionService.getFunctions());
   }, []);
 
   return (
@@ -707,6 +715,116 @@ export function Settings({ onClose }: Props) {
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* Function Calling */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Function Calling</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Enable AI to call functions (APIs, tools) when needed. Functions are automatically detected from your queries.
+            </p>
+
+            {/* Global Enable/Disable */}
+            <div className="mb-6">
+              <label className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                <div>
+                  <span className="font-medium text-gray-900">Enable Function Calling</span>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Allow AI to detect and execute functions based on your queries
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.functions.enableFunctionCalling}
+                  onChange={(e) => updateSettings({
+                    functions: {
+                      ...settings.functions,
+                      enableFunctionCalling: e.target.checked,
+                    },
+                  })}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+              </label>
+            </div>
+
+            {/* Available Functions */}
+            {settings.functions.enableFunctionCalling && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Available Functions</h4>
+                <div className="space-y-3">
+                  {functions.map((func) => (
+                    <div
+                      key={func.id}
+                      className="p-4 bg-gray-50 rounded-xl border border-gray-200"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h5 className="font-medium text-gray-900">{func.name}</h5>
+                            {func.builtIn && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">
+                                Built-in
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">{func.description}</p>
+
+                          {/* Parameters */}
+                          {func.parameters.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-700">Parameters:</p>
+                              {func.parameters.map((param) => (
+                                <div key={param.name} className="text-xs text-gray-600 ml-2">
+                                  <span className="font-mono text-gray-800">{param.name}</span>
+                                  {' '}
+                                  ({param.type})
+                                  {param.required && <span className="text-red-600"> *</span>}
+                                  {' - '}
+                                  {param.description}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Toggle */}
+                        <div className="ml-4">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settings.functions.availableFunctions.includes(func.id)}
+                              onChange={(e) => {
+                                const newFunctions = e.target.checked
+                                  ? [...settings.functions.availableFunctions, func.id]
+                                  : settings.functions.availableFunctions.filter(id => id !== func.id);
+
+                                updateSettings({
+                                  functions: {
+                                    ...settings.functions,
+                                    availableFunctions: newFunctions,
+                                  },
+                                });
+
+                                // Update function service
+                                functionService.toggleFunction(func.id, e.target.checked);
+                              }}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {functions.length === 0 && (
+                  <p className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded-xl">
+                    No functions available. Add custom functions below.
+                  </p>
+                )}
+              </div>
+            )}
           </section>
 
           {/* Model Info */}

@@ -27,17 +27,6 @@ export function ChatMessage({ message }: Props) {
 
   const metadata = message.metadata || {};
 
-  // Debug logging for assistant messages
-  useEffect(() => {
-    if (!isUser) {
-      console.log('📝 ChatMessage render:', {
-        messageId: message.id,
-        contentLength: message.content.length,
-        contentPreview: message.content.substring(0, 100) + (message.content.length > 100 ? '...' : '')
-      });
-    }
-  }, [message.content, message.id, isUser]);
-
   // Build metadata sections based on settings
   const metadataSections: { label: string; items: { key: string; value: string }[] }[] = [];
 
