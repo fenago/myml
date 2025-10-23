@@ -1,6 +1,6 @@
 # MyML.app - Gemma 3n Implementation TODO
 
-**Last Updated**: 2025-10-23
+**Last Updated**: 2025-10-23 (Updated after completing export, context indicator, and video processing)
 **Project**: MyML.app - Privacy-First Browser-Based AI
 
 ---
@@ -23,6 +23,7 @@
 - [x] Video input with file upload
 - [x] Unified attachment modal with capability explanations
 - [x] Image resolution picker (256×256, 512×512, 768×768)
+- [x] Real-time video frame extraction (1fps sampling, max 10 frames)
 
 ### Voice Features
 - [x] Speech-to-text input (Web Speech API)
@@ -46,6 +47,15 @@
 - [x] Expandable metadata display in messages
 - [x] User-controllable metadata toggles
 
+### Context Management
+- [x] 32K token context indicator (color-coded progress bar)
+- [x] Export conversations (JSON, Markdown, Text, HTML)
+
+### Function Calling
+- [x] Built-in weather function (OpenMeteo API)
+- [x] Function detection and execution framework
+- [x] Function call UI in chat
+
 ### UI/UX Enhancements
 - [x] Microinteractions (particles, text shimmer, hover effects)
 - [x] Theme support (light/dark/system)
@@ -60,9 +70,7 @@
 ## 🚧 In Progress / Partially Implemented
 
 ### Multimodal Processing
-- [ ] **Real-time video frame extraction** - Currently accepts video files but needs frame-by-frame processing
 - [ ] **Audio duration calculation** - File upload works, but duration not calculated from audio files
-- [ ] **Video duration calculation** - File upload works, but duration not calculated from video files
 - [ ] **Multiple image upload handling** - UI supports it, but need to test/optimize multi-image processing
 
 ### Audio Features (Partial)
@@ -83,17 +91,14 @@
 - [ ] **Audio/video preview players** - Preview media before sending
 
 ### Function Calling
-- [ ] **Function definition UI** - Let users define callable functions
-- [ ] **Function execution framework** - Execute functions the model invokes
-- [ ] **Pre-built function library** - Weather, calculator, web search, etc.
+- [ ] **Function definition UI** - Let users define custom callable functions
+- [ ] **Pre-built function library** - Calculator, web search, etc.
 - [ ] **Function calling examples** - Tutorial/templates for users
 
 ### Structured Output
 - [ ] **JSON schema validator** - Define expected output format
 - [ ] **XML output support** - Generate structured XML
 - [ ] **CSV/Table generation** - Export data in tabular format
-- [x] **Code syntax highlighting** - Syntax highlighting for code blocks in responses
-- [x] **Markdown rendering** - Render markdown in chat messages
 
 ### Performance Optimizations
 - [x] **Streaming responses** - Token-by-token streaming instead of waiting for full response
@@ -102,11 +107,9 @@
 - [ ] **WebGPU acceleration** - Optimize for WebGPU if available
 - [ ] **Quantization options** - 4-bit/8-bit/16-bit model variants
 
-### Context Management
-- [ ] **32K token context indicator** - Show remaining context window
+### Context Management (Additional)
 - [ ] **Context summarization** - Auto-summarize long conversations
 - [ ] **Conversation branching** - Fork conversations at any point
-- [ ] **Export conversations** - Download chat history (JSON, markdown, PDF)
 - [ ] **Import conversations** - Load previous chat sessions
 
 ---
@@ -188,6 +191,7 @@
 - [ ] **Unit tests** - Test coverage for core functions
 - [ ] **E2E tests** - Automated testing for critical flows
 - [ ] **Performance profiling** - Identify and fix bottlenecks
+- [ ] **Clean up debugging console logs** - Remove excessive logging
 
 ### Architecture
 - [ ] **Service worker** - Offline-first architecture
@@ -206,18 +210,18 @@
 
 ## 🎯 Feature Priority Matrix
 
-### Must Have (Core Functionality)
+### Must Have (Core Functionality) ✅ ALL COMPLETED
 1. ✅ Streaming responses - COMPLETED
 2. ✅ Code syntax highlighting - COMPLETED
 3. ✅ Markdown rendering - COMPLETED
-4. Export conversations
-5. Real-time video/audio processing
+4. ✅ Export conversations - COMPLETED
+5. ✅ Real-time video frame processing - COMPLETED
 
 ### Should Have (Enhanced UX)
-1. Function calling
+1. Function calling (partially done - weather function works)
 2. Structured output
 3. Drag-and-drop uploads
-4. Context management
+4. Context management (partially done - indicator and export done)
 5. Model switching
 
 ### Nice to Have (Polish)
@@ -233,49 +237,78 @@
 
 | Category | Implemented | In Progress | TODO | Total | % Complete |
 |----------|-------------|-------------|------|-------|------------|
-| **Core Infrastructure** | 7 | 0 | 5 | 12 | 58% |
-| **Multimodal Input** | 6 | 4 | 6 | 16 | 38% |
+| **Core Infrastructure** | 7 | 0 | 6 | 13 | 54% |
+| **Multimodal Input** | 7 | 2 | 6 | 15 | 47% |
 | **Voice Features** | 5 | 2 | 3 | 10 | 50% |
 | **Language Support** | 5 | 0 | 4 | 9 | 56% |
+| **Context Management** | 2 | 0 | 3 | 5 | 40% |
+| **Function Calling** | 2 | 0 | 3 | 5 | 40% |
 | **Advanced Features** | 0 | 0 | 8 | 8 | 0% |
-| **Performance** | 0 | 0 | 5 | 5 | 0% |
+| **Performance** | 1 | 0 | 4 | 5 | 20% |
 | **UI/UX** | 8 | 0 | 15 | 23 | 35% |
 | **Data Management** | 2 | 0 | 4 | 6 | 33% |
 
-**Overall Progress**: ~40% of planned features completed
+**Overall Progress**: ~45% of planned features completed
 
 ---
 
 ## 🚀 Recommended Next Steps
 
-### Phase 1: Core Functionality (1-2 weeks)
-1. ✅ Implement streaming responses - COMPLETED
-2. ✅ Add markdown rendering to chat messages - COMPLETED
-3. ✅ Add code syntax highlighting - COMPLETED
-4. Clean up debugging console logs
-5. Implement conversation export
-6. Real-time video frame processing
+### ✅ Phase 1: Core Functionality - COMPLETED!
+1. ✅ Implement streaming responses
+2. ✅ Add markdown rendering to chat messages
+3. ✅ Add code syntax highlighting
+4. ✅ Implement conversation export
+5. ✅ Real-time video frame processing
 
-### Phase 2: Enhanced Multimodal (2-3 weeks)
+### 🎯 Phase 2: Function Calling & UX (RECOMMENDED NEXT)
+**Estimated Time**: 1-2 weeks
+
+1. **Custom Function Creation UI** - Let users define their own callable functions
+   - Function definition modal/form
+   - Parameter configuration
+   - Test function execution
+   - Enable/disable toggles
+
+2. **Pre-built Function Library** - Add useful built-in functions
+   - Calculator
+   - Unit converter
+   - Time/timezone converter
+   - Random number generator
+   - URL shortener/expander
+
+3. **Drag-and-Drop File Upload** - Improve file attachment UX
+   - Drop zone overlay
+   - Multiple file preview
+   - Drag-and-drop anywhere in chat
+
+4. **Storage Usage Dashboard** - Show what's using space
+   - Model cache sizes
+   - Conversation storage
+   - Clear data options
+
+5. **Clean up console logs** - Remove debugging output
+
+### Phase 3: Enhanced Multimodal (2-3 weeks)
 1. Webcam/camera input
 2. Microphone streaming
-3. Drag-and-drop file upload
-4. Media preview players
+3. Media preview players
+4. Screen capture/recording
 5. ASR quality improvements
 
-### Phase 3: Advanced Features (3-4 weeks)
-1. Function calling framework
-2. Structured output support
-3. Context management (32K indicator)
-4. Model switching mid-conversation
-5. Performance optimizations (KV cache, streaming)
+### Phase 4: Advanced Features (3-4 weeks)
+1. Structured output support (JSON schema)
+2. Context summarization
+3. Model switching mid-conversation
+4. Performance optimizations (KV cache, WebGPU)
+5. Conversation import
 
-### Phase 4: Polish & Optimization (2-3 weeks)
-1. Dark mode improvements
-2. Keyboard shortcuts
-3. Interactive tutorial
-4. Unit and E2E tests
-5. Performance profiling and optimization
+### Phase 5: Polish & Optimization (2-3 weeks)
+1. Keyboard shortcuts
+2. Interactive tutorial
+3. Unit and E2E tests
+4. Performance profiling
+5. Dark mode improvements
 
 ---
 
