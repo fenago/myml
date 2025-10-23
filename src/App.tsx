@@ -21,6 +21,7 @@ import { videoProcessingService } from './services/VideoProcessingService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
+import { formatFunctionResult } from './utils/formatFunctionResult';
 
 export function App() {
   const [showChat, setShowChat] = useState(false);
@@ -161,11 +162,12 @@ export function App() {
           if (result.success) {
             console.log('✅ Function executed successfully:', result);
 
-            // Add function result message
+            // Add beautifully formatted function result message
+            const formattedResult = formatFunctionResult(functionCall.functionName, result.result);
             const resultMessage: Message = {
               id: crypto.randomUUID(),
               role: 'assistant',
-              content: `✅ Function result:\n\`\`\`json\n${JSON.stringify(result.result, null, 2)}\n\`\`\``,
+              content: formattedResult,
               timestamp: new Date(),
             };
             addMessage(currentConversationId, resultMessage);
