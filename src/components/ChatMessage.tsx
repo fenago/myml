@@ -178,32 +178,38 @@ export function ChatMessage({ message }: Props) {
                 {message.content}
               </p>
             ) : (
-              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert break-words overflow-wrap-anywhere">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
                   components={{
+                    // Custom styling for paragraphs
+                    p: ({children}: any) => (
+                      <p className="whitespace-pre-wrap break-words mb-2 last:mb-0">
+                        {children}
+                      </p>
+                    ),
                     // Custom styling for code blocks
                     code: ({node, inline, className, children, ...props}: any) => {
                       return inline ? (
-                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono break-words" {...props}>
                           {children}
                         </code>
                       ) : (
-                        <code className={`${className} text-xs`} {...props}>
+                        <code className={`${className} text-xs block whitespace-pre-wrap`} {...props}>
                           {children}
                         </code>
                       );
                     },
                     // Custom styling for pre blocks
                     pre: ({children}: any) => (
-                      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2">
+                      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2 whitespace-pre-wrap break-words">
                         {children}
                       </pre>
                     ),
                     // Custom styling for links
                     a: ({children, href}: any) => (
-                      <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                      <a href={href} className="text-blue-600 hover:underline break-words" target="_blank" rel="noopener noreferrer">
                         {children}
                       </a>
                     ),
