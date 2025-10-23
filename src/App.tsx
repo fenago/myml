@@ -516,7 +516,7 @@ export function App() {
         // Accumulate text locally - MediaPipe sends INCREMENTAL chunks
         let accumulatedText = '';
 
-        // Generate streaming response with verbosity control and system prompts
+        // Generate streaming response with verbosity control, system prompts, structured output, and safety
         await inferenceEngine.generateStreaming(
           text || '',
           {
@@ -536,7 +536,9 @@ export function App() {
             });
           },
           settings.responseStyle.verbosity, // Pass verbosity setting
-          settings.systemPrompt // Pass system prompt settings
+          settings.systemPrompt, // Pass system prompt settings
+          settings.structuredOutput, // Pass structured output settings
+          settings.safety // Pass safety settings
         );
       }
     } catch (error) {

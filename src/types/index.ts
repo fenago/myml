@@ -155,4 +155,21 @@ export interface AppSettings {
     customPrompt: string; // User's custom system prompt
     selectedPreset: string | null; // ID of selected preset (null = custom)
   };
+  structuredOutput: {
+    enabled: boolean; // Enable structured output mode
+    format: 'json' | 'xml' | 'csv' | 'table' | 'markdown-table'; // Output format
+    jsonSchema: string; // JSON schema as string
+    xmlRootElement: string; // Root element name for XML
+    csvIncludeHeaders: boolean; // Include headers in CSV
+    csvDelimiter: string; // CSV delimiter
+  };
+  safety: {
+    enabled: boolean; // Enable content filtering
+    level: 'off' | 'moderate' | 'strict'; // Filtering level
+    blockProfanity: boolean; // Block profane language
+    blockViolence: boolean; // Block violent content
+    blockSexual: boolean; // Block sexual content
+    blockHate: boolean; // Block hate speech
+    customFilters: string[]; // Custom keywords to filter
+  };
 }

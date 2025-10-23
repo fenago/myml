@@ -79,7 +79,7 @@ export class InferenceEngine {
   }
 
   /**
-   * Build complete system instruction including custom prompts and verbosity
+   * Build complete system instruction including custom prompts, verbosity, structured output, and safety
    */
   private buildSystemInstruction(
     verbosity: 'concise' | 'balanced' | 'detailed',
@@ -87,9 +87,50 @@ export class InferenceEngine {
       enabled: boolean;
       customPrompt: string;
       selectedPreset: string | null;
+    },
+    structuredOutputSettings?: {
+      enabled: boolean;
+      format: string;
+      jsonSchema?: string;
+      xmlRootElement?: string;
+      csvIncludeHeaders?: boolean;
+      csvDelimiter?: string;
+    },
+    safetySettings?: {
+      enabled: boolean;
+      level: 'off' | 'moderate' | 'strict';
+      blockProfanity: boolean;
+      blockViolence: boolean;
+      blockSexual: boolean;
+      blockHate: boolean;
+      customFilters: string[];
     }
   ): string {
     const instructions: string[] = [];
+
+    // Add safety instructions first
+    if (safetySettings?.enabled && safetySettings.level !== 'off') {
+      const { contentFilterService } = require('./ContentFilterService');
+      const safetyPrompt = contentFilterService.generateSafetyPrompt(safetySettings);
+      if (safetyPrompt) {
+        instructions.push(safetyPrompt);
+      }
+    }
+
+    // Add structured output instructions
+    if (structuredOutputSettings?.enabled) {
+      const { structuredOutputService } = require('./StructuredOutputService');
+      const formatPrompt = structuredOutputService.generateStructuredPrompt('', {
+        format: structuredOutputSettings.format as any,
+        schema: structuredOutputSettings.jsonSchema ? JSON.parse(structuredOutputSettings.jsonSchema) : undefined,
+        rootElement: structuredOutputSettings.xmlRootElement,
+        includeHeaders: structuredOutputSettings.csvIncludeHeaders,
+        delimiter: structuredOutputSettings.csvDelimiter,
+      });
+      // Extract just the instruction part (without "User request:")
+      const instructionPart = formatPrompt.split('User request:')[0].trim();
+      instructions.push(instructionPart);
+    }
 
     // Add custom system prompt if enabled
     if (systemPromptSettings?.enabled) {
@@ -125,6 +166,23 @@ export class InferenceEngine {
       enabled: boolean;
       customPrompt: string;
       selectedPreset: string | null;
+    },
+    structuredOutputSettings?: {
+      enabled: boolean;
+      format: string;
+      jsonSchema?: string;
+      xmlRootElement?: string;
+      csvIncludeHeaders?: boolean;
+      csvDelimiter?: string;
+    },
+    safetySettings?: {
+      enabled: boolean;
+      level: 'off' | 'moderate' | 'strict';
+      blockProfanity: boolean;
+      blockViolence: boolean;
+      blockSexual: boolean;
+      blockHate: boolean;
+      customFilters: string[];
     }
   ): Promise<GenerationResult> {
     if (!this.llmInference) {
@@ -134,8 +192,13 @@ export class InferenceEngine {
     console.log('🤖 Generating response with MediaPipe...');
 
     try {
-      // Build complete system instruction (verbosity + custom prompts)
-      const systemInstruction = this.buildSystemInstruction(verbosity, systemPromptSettings);
+      // Build complete system instruction (verbosity + custom prompts + structured output + safety)
+      const systemInstruction = this.buildSystemInstruction(
+        verbosity,
+        systemPromptSettings,
+        structuredOutputSettings,
+        safetySettings
+      );
       const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
 
       // Format prompt for GEMMA models
@@ -195,6 +258,23 @@ export class InferenceEngine {
       enabled: boolean;
       customPrompt: string;
       selectedPreset: string | null;
+    },
+    structuredOutputSettings?: {
+      enabled: boolean;
+      format: string;
+      jsonSchema?: string;
+      xmlRootElement?: string;
+      csvIncludeHeaders?: boolean;
+      csvDelimiter?: string;
+    },
+    safetySettings?: {
+      enabled: boolean;
+      level: 'off' | 'moderate' | 'strict';
+      blockProfanity: boolean;
+      blockViolence: boolean;
+      blockSexual: boolean;
+      blockHate: boolean;
+      customFilters: string[];
     }
   ): Promise<void> {
     if (!this.llmInference) {
@@ -204,8 +284,13 @@ export class InferenceEngine {
     console.log('🤖 Generating streaming response...');
 
     try {
-      // Build complete system instruction (verbosity + custom prompts)
-      const systemInstruction = this.buildSystemInstruction(verbosity, systemPromptSettings);
+      // Build complete system instruction (verbosity + custom prompts + structured output + safety)
+      const systemInstruction = this.buildSystemInstruction(
+        verbosity,
+        systemPromptSettings,
+        structuredOutputSettings,
+        safetySettings
+      );
       const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
 
       const formattedPrompt = `<start_of_turn>user\n${enhancedPrompt}<end_of_turn>\n<start_of_turn>model\n`;

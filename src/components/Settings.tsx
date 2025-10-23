@@ -14,6 +14,8 @@ import { functionService } from '../services/FunctionService';
 import type { FunctionDefinition } from '../types';
 import { FunctionEditor } from './FunctionEditor';
 import { SystemPromptEditor } from './SystemPromptEditor';
+import { StructuredOutputEditor } from './StructuredOutputEditor';
+import { SafetySettingsEditor } from './SafetySettingsEditor';
 
 interface Props {
   onClose: () => void;
@@ -1448,7 +1450,36 @@ function FunctionsTab({ functions, settings, updateSettings, onCreateNew, onEdit
 function AdvancedTab({ settings, updateSettings }: any) {
   return (
     <div className="space-y-6">
+      {/* Structured Output */}
       <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Structured Output</h3>
+        <StructuredOutputEditor
+          enabled={settings.structuredOutput.enabled}
+          format={settings.structuredOutput.format}
+          jsonSchema={settings.structuredOutput.jsonSchema}
+          xmlRootElement={settings.structuredOutput.xmlRootElement}
+          csvIncludeHeaders={settings.structuredOutput.csvIncludeHeaders}
+          csvDelimiter={settings.structuredOutput.csvDelimiter}
+          onUpdate={(updates) => updateSettings({ structuredOutput: { ...settings.structuredOutput, ...updates } })}
+        />
+      </div>
+
+      {/* Safety & Content Filtering */}
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Safety & Content Filtering</h3>
+        <SafetySettingsEditor
+          enabled={settings.safety.enabled}
+          level={settings.safety.level}
+          blockProfanity={settings.safety.blockProfanity}
+          blockViolence={settings.safety.blockViolence}
+          blockSexual={settings.safety.blockSexual}
+          blockHate={settings.safety.blockHate}
+          customFilters={settings.safety.customFilters}
+          onUpdate={(updates) => updateSettings({ safety: { ...settings.safety, ...updates } })}
+        />
+      </div>
+
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Storage</h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           Manage model caching and storage preferences

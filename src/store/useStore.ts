@@ -148,6 +148,23 @@ export const useStore = create<AppState>((set) => ({
       customPrompt: '', // Empty by default
       selectedPreset: null, // No preset selected by default
     },
+    structuredOutput: {
+      enabled: false, // Disabled by default
+      format: 'json', // JSON is most common
+      jsonSchema: '{\n  "type": "object",\n  "properties": {\n    \n  }\n}', // Default empty schema
+      xmlRootElement: 'root', // Default root element
+      csvIncludeHeaders: true, // Include headers by default
+      csvDelimiter: ',', // Comma delimiter by default
+    },
+    safety: {
+      enabled: false, // Disabled by default
+      level: 'moderate', // Moderate filtering when enabled
+      blockProfanity: true,
+      blockViolence: true,
+      blockSexual: true,
+      blockHate: true,
+      customFilters: [], // No custom filters by default
+    },
   },
 
   // Actions
