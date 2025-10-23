@@ -33,6 +33,7 @@ interface AppState {
   addMessage: (conversationId: string, message: Message) => void;
   updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>) => void;
   togglePinMessage: (conversationId: string, messageId: string) => void;
+  truncateMessagesAfter: (conversationId: string, messageIndex: number) => void;
   createConversation: (modelId: ModelId) => string;
   forkConversation: (conversationId: string, fromMessageId: string) => string;
   updateConversationSummary: (conversationId: string, summary: string, summarizedUpTo: number) => void;
@@ -216,6 +217,23 @@ export const useStore = create<AppState>((set) => ({
             messages: conversation.messages.map((msg) =>
               msg.id === messageId ? { ...msg, pinned: !msg.pinned } : msg
             ),
+            updatedAt: new Date(),
+          },
+        },
+      };
+    }),
+
+  truncateMessagesAfter: (conversationId, messageIndex) =>
+    set((state) => {
+      const conversation = state.conversations[conversationId];
+      if (!conversation) return state;
+
+      return {
+        conversations: {
+          ...state.conversations,
+          [conversationId]: {
+            ...conversation,
+            messages: conversation.messages.slice(0, messageIndex + 1),
             updatedAt: new Date(),
           },
         },

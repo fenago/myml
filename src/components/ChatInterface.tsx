@@ -37,7 +37,7 @@ interface Props {
 export function ChatInterface({ onSendMessage }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage } = useStore();
+  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, updateMessage, truncateMessagesAfter, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage } = useStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showModelDashboard, setShowModelDashboard] = useState(false);
   const [showHelpGuide, setShowHelpGuide] = useState(false);
@@ -186,6 +186,68 @@ export function ChatInterface({ onSendMessage }: Props) {
   const handleTogglePin = (messageId: string) => {
     if (!currentConversationId) return;
     togglePinMessage(currentConversationId, messageId);
+  };
+
+  // Handle edit message
+  const handleEditMessage = (messageId: string, newContent: string) => {
+    if (!currentConversationId || !currentConversation) return;
+
+    const message = currentConversation.messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    const messageIndex = currentConversation.messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Save current content to versions array
+    const versions = message.versions || [];
+    const originalContent = message.originalContent || message.content;
+
+    // Update message with new content and version history
+    updateMessage(currentConversationId, messageId, {
+      content: newContent,
+      versions: [...versions, message.content],
+      originalContent,
+      isEdited: true,
+      currentVersion: versions.length,
+    });
+
+    // Remove all messages after the edited one
+    truncateMessagesAfter(currentConversationId, messageIndex);
+
+    // Send the edited message to get new response
+    onSendMessage({ text: newContent });
+  };
+
+  // Handle regenerate message
+  const handleRegenerateMessage = async (messageId: string) => {
+    if (!currentConversationId || !currentConversation) return;
+
+    const messageIndex = currentConversation.messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    const message = currentConversation.messages[messageIndex];
+    if (message.role !== 'assistant') return;
+
+    // Save current response as a variation
+    const variations = message.variations || [];
+    updateMessage(currentConversationId, messageId, {
+      variations: [...variations, message.content],
+      currentVariation: variations.length,
+    });
+
+    // Remove this message and all messages after it
+    truncateMessagesAfter(currentConversationId, messageIndex - 1);
+
+    // Get the previous user message to re-send
+    const previousUserMessage = currentConversation.messages
+      .slice(0, messageIndex)
+      .reverse()
+      .find(m => m.role === 'user');
+
+    if (previousUserMessage) {
+      // Re-send the previous user message to get a new response
+      onSendMessage({ text: previousUserMessage.content });
+    }
   };
 
   // Handle conversation summarization
@@ -553,6 +615,8 @@ export function ChatInterface({ onSendMessage }: Props) {
                   message={message}
                   onFork={handleForkConversation}
                   onTogglePin={handleTogglePin}
+                  onEdit={handleEditMessage}
+                  onRegenerate={handleRegenerateMessage}
                 />
               </div>
             ))}

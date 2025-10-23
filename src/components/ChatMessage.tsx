@@ -15,19 +15,24 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import { useCardTilt } from '../hooks/useCardTilt';
+import { CodeBlock } from './CodeBlock';
 
 interface Props {
   message: Message;
   onFork?: (messageId: string) => void;
   onTogglePin?: (messageId: string) => void;
+  onEdit?: (messageId: string, newContent: string) => void;
+  onRegenerate?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message, onFork, onTogglePin }: Props) {
+export function ChatMessage({ message, onFork, onTogglePin, onEdit, onRegenerate }: Props) {
   const isUser = message.role === 'user';
   const { settings } = useStore();
   const [showAllMetadata, setShowAllMetadata] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(message.content);
 
   // Card tilt effect for message cards
   const { ref: cardRef, style: cardStyle } = useCardTilt();
@@ -155,6 +160,31 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
     }
   };
 
+  // Edit message handlers
+  const handleStartEdit = () => {
+    setIsEditing(true);
+    setEditedContent(message.content);
+  };
+
+  const handleSaveEdit = () => {
+    if (editedContent.trim() !== message.content.trim() && onEdit) {
+      onEdit(message.id, editedContent.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedContent(message.content);
+  };
+
+  // Regenerate response handler
+  const handleRegenerateClick = () => {
+    if (onRegenerate) {
+      onRegenerate(message.id);
+    }
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -213,9 +243,41 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
               style={{ wordWrap: 'break-word', overflowWrap: 'break-word', width: '100%', ...cardStyle }}
             >
               {isUser ? (
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                isEditing ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground resize-none"
+                      rows={Math.min(10, editedContent.split('\n').length + 1)}
+                      autoFocus
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-3 py-1 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveEdit}
+                        className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        disabled={!editedContent.trim() || editedContent.trim() === message.content.trim()}
+                      >
+                        Save & Resend
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    {message.isEdited && (
+                      <p className="text-xs text-muted-foreground mt-1">(edited)</p>
+                    )}
+                  </div>
+                )
               ) : (
                 <div
                   className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert"
@@ -245,33 +307,30 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
                       ),
                       // Custom styling for code blocks
                       code: ({node, inline, className, children, ...props}: any) => {
-                        return inline ? (
-                          <code
-                            className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
-                            style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                            {...props}
-                          >
-                            {children}
-                          </code>
-                        ) : (
-                          <code
-                            className={`${className} text-xs block`}
-                            style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
-                            {...props}
-                          >
-                            {children}
-                          </code>
+                        // Inline code
+                        if (inline) {
+                          return (
+                            <code
+                              className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
+                              style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          );
+                        }
+
+                        // Block code - extract language from className (format: language-*)
+                        const match = /language-(\w+)/.exec(className || '');
+                        const language = match ? match[1] : 'text';
+                        const codeString = String(children).replace(/\n$/, '');
+
+                        return (
+                          <CodeBlock code={codeString} language={language} />
                         );
                       },
-                      // Custom styling for pre blocks
-                      pre: ({children}: any) => (
-                        <pre
-                          className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2"
-                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
-                        >
-                          {children}
-                        </pre>
-                      ),
+                      // Custom styling for pre blocks - just pass through since CodeBlock handles it
+                      pre: ({children}: any) => <>{children}</>,
                       // Custom styling for links
                       a: ({children, href}: any) => (
                         <a
@@ -369,6 +428,40 @@ export function ChatMessage({ message, onFork, onTogglePin }: Props) {
                     </>
                   )}
                 </button>
+              )}
+
+              {/* Edit Button (User Messages) */}
+              {isUser && onEdit && !isEditing && (
+                <>
+                  <span>·</span>
+                  <button
+                    onClick={handleStartEdit}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted transition-colors"
+                    title="Edit message"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                </>
+              )}
+
+              {/* Regenerate Button (Assistant Messages) */}
+              {!isUser && onRegenerate && (
+                <>
+                  <span>·</span>
+                  <button
+                    onClick={handleRegenerateClick}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted transition-colors"
+                    title="Regenerate response"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Regenerate</span>
+                  </button>
+                </>
               )}
 
               {(hasAnyMetadata || settings.voice.enableOutput || onFork) && <span>·</span>}

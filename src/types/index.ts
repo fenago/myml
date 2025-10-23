@@ -41,6 +41,16 @@ export interface Message {
   audio?: string; // Base64 encoded audio
   video?: string; // Base64 encoded video
   pinned?: boolean; // Whether message is pinned for quick access
+
+  // Message editing & versioning
+  versions?: string[]; // Array of previous content versions
+  currentVersion?: number; // Index of current version being displayed
+  originalContent?: string; // Original message content before any edits
+  isEdited?: boolean; // Whether the message has been edited
+
+  // Response variations (for assistant messages)
+  variations?: string[]; // Multiple AI response variations
+  currentVariation?: number; // Index of current variation being displayed
 }
 
 export interface Conversation {
