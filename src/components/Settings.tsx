@@ -7,7 +7,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import { getAvailableModels, type ModelId } from '../config/models';
+import { getAvailableModels } from '../config/models';
 import { getAllLanguages, AUDIO_TRANSCRIPTION_LANGUAGES } from '../config/languages';
 import { voiceService } from '../services/VoiceService';
 import { functionService } from '../services/FunctionService';
@@ -251,9 +251,9 @@ export function Settings({ onClose }: Props) {
       <AnimatePresence>
         {isEditorOpen && (
           <FunctionEditor
-            function={functionToEdit}
+            functionToEdit={functionToEdit}
             onSave={handleSaveFunction}
-            onClose={() => {
+            onCancel={() => {
               setIsEditorOpen(false);
               setFunctionToEdit(undefined);
             }}
@@ -265,7 +265,7 @@ export function Settings({ onClose }: Props) {
 }
 
 // Model Tab Component
-function ModelTab({ models, currentModelId, currentModel, setCurrentModel, settings, updateSettings }: any) {
+function ModelTab({ models, currentModelId, setCurrentModel, settings, updateSettings }: any) {
   return (
     <div className="space-y-6">
       <div>

@@ -178,7 +178,7 @@ export class MicrophoneStreamService {
   isMicrophoneSupported(): boolean {
     return !!(
       navigator.mediaDevices &&
-      navigator.mediaDevices.getUserMedia &&
+      typeof navigator.mediaDevices.getUserMedia === 'function' &&
       window.MediaRecorder
     );
   }

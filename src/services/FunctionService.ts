@@ -904,11 +904,21 @@ export class FunctionService {
       };
     }
 
-    // 8. WIKIPEDIA SEARCH DETECTION
+    // 8. WIKIPEDIA SEARCH DETECTION - Only trigger on explicit Wikipedia requests or encyclopedic queries
+    const lowerMessage = message.toLowerCase();
+    const explicitWikiRequest = lowerMessage.includes('wikipedia') || lowerMessage.includes('wiki');
+    const searchArticleRequest = lowerMessage.includes('search') && lowerMessage.includes('article');
+
+    // Avoid triggering on technical/code questions
+    const isTechnicalQuestion =
+      lowerMessage.includes('test') || lowerMessage.includes('code') || lowerMessage.includes('function') ||
+      lowerMessage.includes('component') || lowerMessage.includes('error') || lowerMessage.includes('build') ||
+      lowerMessage.includes('camera') || lowerMessage.includes('voice') || lowerMessage.includes('capabilities') ||
+      lowerMessage.includes('how do i') || lowerMessage.includes('how to');
+
     if (
-      ((message.includes('wikipedia') || message.includes('wiki')) ||
-       (message.includes('search') && message.includes('article')) ||
-       message.includes('what is') || message.includes('who is') || message.includes('tell me about')) &&
+      (explicitWikiRequest || searchArticleRequest) &&
+      !isTechnicalQuestion &&
       this.functions.get('wikipedia_search')?.enabled
     ) {
       // Extract query after common patterns
