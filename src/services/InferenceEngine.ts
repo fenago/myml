@@ -79,12 +79,53 @@ export class InferenceEngine {
   }
 
   /**
+   * Build complete system instruction including custom prompts and verbosity
+   */
+  private buildSystemInstruction(
+    verbosity: 'concise' | 'balanced' | 'detailed',
+    systemPromptSettings?: {
+      enabled: boolean;
+      customPrompt: string;
+      selectedPreset: string | null;
+    }
+  ): string {
+    const instructions: string[] = [];
+
+    // Add custom system prompt if enabled
+    if (systemPromptSettings?.enabled) {
+      if (systemPromptSettings.customPrompt) {
+        // User has a custom prompt
+        instructions.push(systemPromptSettings.customPrompt);
+      } else if (systemPromptSettings.selectedPreset) {
+        // User has selected a preset
+        const { getPersonaById } = require('../config/personas');
+        const persona = getPersonaById(systemPromptSettings.selectedPreset);
+        if (persona) {
+          instructions.push(persona.systemPrompt);
+        }
+      }
+    }
+
+    // Always add verbosity instruction (can be omitted if custom prompt already handles it)
+    if (!systemPromptSettings?.enabled || !systemPromptSettings.customPrompt) {
+      instructions.push(this.getVerbosityInstruction(verbosity));
+    }
+
+    return instructions.filter(Boolean).join('\n\n');
+  }
+
+  /**
    * Generate text response
    */
   async generate(
     prompt: string,
     options: GenerationOptions,
-    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise'
+    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise',
+    systemPromptSettings?: {
+      enabled: boolean;
+      customPrompt: string;
+      selectedPreset: string | null;
+    }
   ): Promise<GenerationResult> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
@@ -93,8 +134,8 @@ export class InferenceEngine {
     console.log('🤖 Generating response with MediaPipe...');
 
     try {
-      // Add verbosity instruction to prompt
-      const systemInstruction = this.getVerbosityInstruction(verbosity);
+      // Build complete system instruction (verbosity + custom prompts)
+      const systemInstruction = this.buildSystemInstruction(verbosity, systemPromptSettings);
       const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
 
       // Format prompt for GEMMA models
@@ -149,7 +190,12 @@ export class InferenceEngine {
     prompt: string,
     options: GenerationOptions,
     onToken: (token: string, isDone: boolean, metadata?: MessageMetadata) => void,
-    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise'
+    verbosity: 'concise' | 'balanced' | 'detailed' = 'concise',
+    systemPromptSettings?: {
+      enabled: boolean;
+      customPrompt: string;
+      selectedPreset: string | null;
+    }
   ): Promise<void> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
@@ -158,8 +204,8 @@ export class InferenceEngine {
     console.log('🤖 Generating streaming response...');
 
     try {
-      // Add verbosity instruction to prompt
-      const systemInstruction = this.getVerbosityInstruction(verbosity);
+      // Build complete system instruction (verbosity + custom prompts)
+      const systemInstruction = this.buildSystemInstruction(verbosity, systemPromptSettings);
       const enhancedPrompt = `${systemInstruction}\n\n${prompt}`;
 
       const formattedPrompt = `<start_of_turn>user\n${enhancedPrompt}<end_of_turn>\n<start_of_turn>model\n`;

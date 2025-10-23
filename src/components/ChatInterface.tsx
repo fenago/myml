@@ -211,7 +211,8 @@ export function ChatInterface({ onSendMessage }: Props) {
         (chunk: string) => {
           summary += chunk;
         },
-        settings.responseStyle.verbosity
+        settings.responseStyle.verbosity,
+        settings.systemPrompt
       );
 
       // Update conversation with summary

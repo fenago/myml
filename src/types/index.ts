@@ -150,4 +150,9 @@ export interface AppSettings {
   responseStyle: {
     verbosity: 'concise' | 'balanced' | 'detailed'; // Control response length
   };
+  systemPrompt: {
+    enabled: boolean; // Enable custom system prompts
+    customPrompt: string; // User's custom system prompt
+    selectedPreset: string | null; // ID of selected preset (null = custom)
+  };
 }

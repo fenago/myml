@@ -13,6 +13,7 @@ import { voiceService } from '../services/VoiceService';
 import { functionService } from '../services/FunctionService';
 import type { FunctionDefinition } from '../types';
 import { FunctionEditor } from './FunctionEditor';
+import { SystemPromptEditor } from './SystemPromptEditor';
 
 interface Props {
   onClose: () => void;
@@ -414,6 +415,20 @@ function ModelTab({ models, currentModelId, setCurrentModel, settings, updateSet
             </div>
           </div>
         </div>
+      </div>
+
+      {/* System Prompts & Personas */}
+      <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">AI Personality & Behavior</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Customize how the AI responds with preset personas or custom instructions
+        </p>
+        <SystemPromptEditor
+          enabled={settings.systemPrompt.enabled}
+          customPrompt={settings.systemPrompt.customPrompt}
+          selectedPreset={settings.systemPrompt.selectedPreset}
+          onUpdate={(updates) => updateSettings({ systemPrompt: { ...settings.systemPrompt, ...updates } })}
+        />
       </div>
     </div>
   );

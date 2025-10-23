@@ -143,6 +143,11 @@ export const useStore = create<AppState>((set) => ({
     responseStyle: {
       verbosity: 'concise', // Concise by default (was too verbose before)
     },
+    systemPrompt: {
+      enabled: false, // Disabled by default - uses model's default behavior
+      customPrompt: '', // Empty by default
+      selectedPreset: null, // No preset selected by default
+    },
   },
 
   // Actions
