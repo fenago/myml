@@ -48,6 +48,8 @@ export interface Conversation {
   modelId: string;
   createdAt: Date;
   updatedAt: Date;
+  summary?: string; // Auto-generated summary of older messages
+  summarizedUpTo?: number; // Index of last summarized message
 }
 
 export interface GenerationOptions {

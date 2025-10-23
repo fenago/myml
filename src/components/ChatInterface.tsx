@@ -24,9 +24,12 @@ interface Props {
 
 export function ChatInterface({ onSendMessage }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { currentConversationId, conversations, isGenerating, currentModelId, settings } = useStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, setCurrentConversation, forkConversation, updateConversationSummary } = useStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [showSummary, setShowSummary] = useState(true);
 
   const currentConversation = currentConversationId
     ? conversations[currentConversationId]
@@ -67,6 +70,122 @@ export function ChatInterface({ onSendMessage }: Props) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showExportMenu]);
 
+  // Handle conversation fork
+  const handleForkConversation = (messageId: string) => {
+    if (!currentConversationId) return;
+
+    const messageCount = currentConversation?.messages.findIndex(m => m.id === messageId);
+    if (messageCount === undefined || messageCount === -1) return;
+
+    forkConversation(currentConversationId, messageId);
+    alert(`✅ Conversation forked! Created new conversation with ${messageCount + 1} messages.`);
+  };
+
+  // Handle conversation summarization
+  const handleSummarizeConversation = async () => {
+    if (!currentConversationId || !currentConversation) return;
+
+    const messagesToSummarize = currentConversation.summarizedUpTo
+      ? currentConversation.messages.slice(currentConversation.summarizedUpTo, -5)
+      : currentConversation.messages.slice(0, -5); // Keep last 5 messages unsummarized
+
+    if (messagesToSummarize.length < 5) {
+      alert('⚠️ Not enough messages to summarize. Need at least 10 messages.');
+      return;
+    }
+
+    setIsSummarizing(true);
+
+    try {
+      // Build summarization prompt
+      const conversationText = messagesToSummarize
+        .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n\n');
+
+      const summaryPrompt = `Please provide a concise summary of the following conversation. Focus on key topics, decisions, and important information discussed:\n\n${conversationText}\n\nSummary:`;
+
+      // Generate summary using inference engine
+      const { inferenceEngine } = await import('../services/InferenceEngine');
+      let summary = '';
+
+      await inferenceEngine.generateStreaming(
+        summaryPrompt,
+        {
+          maxTokens: 256,
+          temperature: 0.5,
+          topP: 0.9,
+          streamTokens: true,
+        },
+        (chunk: string) => {
+          summary += chunk;
+        },
+        settings.responseStyle.verbosity
+      );
+
+      // Update conversation with summary
+      const summarizedUpTo = currentConversation.summarizedUpTo
+        ? currentConversation.summarizedUpTo + messagesToSummarize.length
+        : messagesToSummarize.length;
+
+      const fullSummary = currentConversation.summary
+        ? `${currentConversation.summary}\n\n**Update:** ${summary}`
+        : summary;
+
+      updateConversationSummary(currentConversationId, fullSummary, summarizedUpTo);
+      alert(`✅ Conversation summarized! Summarized ${messagesToSummarize.length} messages.`);
+    } catch (error) {
+      console.error('Summarization error:', error);
+      alert('❌ Failed to summarize conversation. Please try again.');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  // Handle conversation import
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importedData = JSON.parse(text);
+
+      // Validate the imported conversation structure
+      if (!importedData.id || !importedData.messages || !Array.isArray(importedData.messages)) {
+        alert('❌ Invalid conversation file format. Please ensure you are importing a valid JSON export.');
+        return;
+      }
+
+      // Create a new conversation with imported data
+      const newConversationId = createConversation(importedData.modelId || currentModelId);
+
+      // Add all imported messages
+      importedData.messages.forEach((message: any) => {
+        addMessage(newConversationId, {
+          ...message,
+          timestamp: new Date(message.timestamp),
+        });
+      });
+
+      // Switch to the imported conversation
+      setCurrentConversation(newConversationId);
+
+      alert(`✅ Successfully imported conversation with ${importedData.messages.length} messages!`);
+    } catch (error) {
+      console.error('Import error:', error);
+      alert('❌ Failed to import conversation. Please check the file format and try again.');
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
@@ -94,6 +213,49 @@ export function ChatInterface({ onSendMessage }: Props) {
             <a href="/features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
             <a href="/about" className="text-muted-foreground hover:text-foreground transition-colors">About</a>
           </nav>
+
+          {/* Hidden file input for import */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileImport}
+            className="hidden"
+          />
+
+          {/* Import Button */}
+          <button
+            onClick={handleImportClick}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2"
+            title="Import Conversation"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span className="hidden sm:inline">Import</span>
+          </button>
+
+          {/* Summarize Button - Show when conversation is long */}
+          {currentConversation && currentConversation.messages.length >= 10 && (
+            <button
+              onClick={handleSummarizeConversation}
+              disabled={isSummarizing}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2 disabled:opacity-50"
+              title="Summarize Conversation"
+            >
+              {isSummarizing ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              )}
+              <span className="hidden sm:inline">{isSummarizing ? 'Summarizing...' : 'Summarize'}</span>
+            </button>
+          )}
 
           {/* Export Menu */}
           {currentConversation && currentConversation.messages.length > 0 && (
@@ -203,8 +365,47 @@ export function ChatInterface({ onSendMessage }: Props) {
       <div className="flex-1 overflow-y-auto px-6 py-8">
         {currentConversation && currentConversation.messages.length > 0 ? (
           <div className="max-w-4xl mx-auto">
+            {/* Summary Section */}
+            {currentConversation.summary && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden"
+              >
+                <button
+                  onClick={() => setShowSummary(!showSummary)}
+                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-medium text-blue-900 dark:text-blue-100">
+                      Conversation Summary ({currentConversation.summarizedUpTo} messages)
+                    </span>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-blue-600 transition-transform ${showSummary ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {showSummary && (
+                  <div className="px-4 py-3 border-t border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-900 dark:text-blue-100 leading-relaxed whitespace-pre-wrap">
+                      {currentConversation.summary}
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Messages */}
             {currentConversation.messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage key={message.id} message={message} onFork={handleForkConversation} />
             ))}
             {isGenerating && <TypingIndicator />}
             <div ref={messagesEndRef} />

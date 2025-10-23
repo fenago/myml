@@ -17,9 +17,10 @@ import 'highlight.js/styles/github-dark.css';
 
 interface Props {
   message: Message;
+  onFork?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message }: Props) {
+export function ChatMessage({ message, onFork }: Props) {
   const isUser = message.role === 'user';
   const { settings } = useStore();
   const [showAllMetadata, setShowAllMetadata] = useState(false);
@@ -257,7 +258,7 @@ export function ChatMessage({ message }: Props) {
           </div>
 
           {/* Compact Metadata */}
-          {(hasAnyMetadata || (settings.voice.enableOutput && !isUser)) && !showAllMetadata && (
+          {(hasAnyMetadata || (settings.voice.enableOutput && !isUser) || onFork) && !showAllMetadata && (
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground px-2 flex-wrap">
               {/* Voice Output Button */}
               {settings.voice.enableOutput && !isUser && (
@@ -286,7 +287,24 @@ export function ChatMessage({ message }: Props) {
                 </button>
               )}
 
-              {hasAnyMetadata && settings.voice.enableOutput && !isUser && <span>·</span>}
+              {/* Fork Conversation Button */}
+              {onFork && (
+                <>
+                  {settings.voice.enableOutput && !isUser && <span>·</span>}
+                  <button
+                    onClick={() => onFork(message.id)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-muted transition-colors"
+                    title="Fork conversation from this message"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span>Fork</span>
+                  </button>
+                </>
+              )}
+
+              {hasAnyMetadata && (settings.voice.enableOutput && !isUser || onFork) && <span>·</span>}
 
               {settings.metadata.showPerformance && (metadata.tokensPerSecond || message.tokensPerSecond) && (
                 <span>⚡ {(metadata.tokensPerSecond || message.tokensPerSecond)?.toFixed(1)} tok/s</span>

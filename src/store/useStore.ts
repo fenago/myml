@@ -33,6 +33,8 @@ interface AppState {
   addMessage: (conversationId: string, message: Message) => void;
   updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>) => void;
   createConversation: (modelId: ModelId) => string;
+  forkConversation: (conversationId: string, fromMessageId: string) => string;
+  updateConversationSummary: (conversationId: string, summary: string, summarizedUpTo: number) => void;
   deleteConversation: (id: string) => void;
   setCurrentConversation: (id: string | null) => void;
 
@@ -162,6 +164,50 @@ export const useStore = create<AppState>((set) => ({
 
     return id;
   },
+
+  forkConversation: (conversationId, fromMessageId) => {
+    const newId = crypto.randomUUID();
+
+    set((state) => {
+      const originalConv = state.conversations[conversationId];
+      if (!originalConv) return state;
+
+      // Find the index of the message to fork from
+      const messageIndex = originalConv.messages.findIndex(m => m.id === fromMessageId);
+      if (messageIndex === -1) return state;
+
+      // Create new conversation with messages up to and including the fork point
+      const forkedMessages = originalConv.messages.slice(0, messageIndex + 1);
+
+      const newConversation: Conversation = {
+        id: newId,
+        messages: forkedMessages,
+        modelId: originalConv.modelId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      return {
+        conversations: { ...state.conversations, [newId]: newConversation },
+        currentConversationId: newId,
+      };
+    });
+
+    return newId;
+  },
+
+  updateConversationSummary: (conversationId, summary, summarizedUpTo) =>
+    set((state) => ({
+      conversations: {
+        ...state.conversations,
+        [conversationId]: {
+          ...state.conversations[conversationId],
+          summary,
+          summarizedUpTo,
+          updatedAt: new Date(),
+        },
+      },
+    })),
 
   deleteConversation: (id) =>
     set((state) => {
