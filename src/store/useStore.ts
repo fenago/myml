@@ -68,6 +68,25 @@ export const useStore = create<AppState>((set) => ({
       particles: true,
       allEnabled: true,
     },
+    metadata: {
+      showPerformance: true,
+      showModelInfo: false,
+      showTokenCounts: false,
+      showMultimodalInfo: true,
+      showTimestamp: true,
+    },
+    imageResolution: '512', // Balanced default
+    voice: {
+      enableInput: false, // Disabled by default
+      enableOutput: false, // Disabled by default
+      outputVoice: '', // Will use browser default
+      outputRate: 1.0,
+      outputPitch: 1.0,
+    },
+    language: {
+      responseLanguage: 'en', // English default
+      audioTranscriptionLanguage: 'en-US', // US English default
+    },
   },
 
   // Actions

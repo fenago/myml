@@ -98,14 +98,17 @@ export function App() {
   const handleSendMessage = async (input: MultimodalInput) => {
     if (!currentConversationId) return;
 
-    const { text, imageFiles, audioFiles } = input;
-    const hasMultimodal = (imageFiles && imageFiles.length > 0) || (audioFiles && audioFiles.length > 0);
+    const { text, imageFiles, audioFiles, videoFiles } = input;
+    const hasMultimodal =
+      (imageFiles && imageFiles.length > 0) ||
+      (audioFiles && audioFiles.length > 0) ||
+      (videoFiles && videoFiles.length > 0);
 
     // Add user message
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: text || '(Image/Audio input)',
+      content: text || '(Multimodal input)',
       timestamp: new Date(),
     };
 
@@ -113,9 +116,6 @@ export function App() {
     setIsGenerating(true);
 
     try {
-      const startTime = Date.now();
-      let response: string;
-
       // Check if model supports multimodal
       const config = getModelConfig(currentModelId);
       const isMultimodal = config.capabilities.length > 1;
@@ -144,40 +144,55 @@ export function App() {
           }
         }
 
-        // Generate multimodal response
-        response = await inferenceEngine.generateMultimodal(multimodalInputs, {
-          maxTokens: 512,
-          temperature: 0.8,
-          topP: 0.9,
-          streamTokens: false,
-        });
+        if (videoFiles) {
+          for (const file of videoFiles) {
+            const videoSource = await fileToDataURL(file);
+            multimodalInputs.push({ videoSource });
+          }
+        }
+
+        // Generate multimodal response with metadata
+        const result = await inferenceEngine.generateMultimodal(
+          multimodalInputs,
+          {
+            maxTokens: 512,
+            temperature: 0.8,
+            topP: 0.9,
+            streamTokens: false,
+          },
+          settings.imageResolution + 'x' + settings.imageResolution
+        );
+
+        // Add assistant message with metadata
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: result.text,
+          timestamp: new Date(),
+          metadata: result.metadata,
+        };
+
+        addMessage(currentConversationId, assistantMessage);
       } else {
-        // Text-only generation
-        response = await inferenceEngine.generate(text || '', {
+        // Text-only generation with metadata
+        const result = await inferenceEngine.generate(text || '', {
           maxTokens: 512,
           temperature: 0.8,
           topP: 0.9,
           streamTokens: false,
         });
+
+        // Add assistant message with metadata
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: result.text,
+          timestamp: new Date(),
+          metadata: result.metadata,
+        };
+
+        addMessage(currentConversationId, assistantMessage);
       }
-
-      const endTime = Date.now();
-      const timeElapsed = (endTime - startTime) / 1000;
-
-      // Estimate tokens (rough approximation)
-      const estimatedTokens = response.split(/\s+/).length;
-      const tokensPerSecond = estimatedTokens / timeElapsed;
-
-      // Add assistant message
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-        tokensPerSecond,
-      };
-
-      addMessage(currentConversationId, assistantMessage);
     } catch (error) {
       console.error('Generation error:', error);
 

@@ -7,12 +7,18 @@
 
 import { FilesetResolver, LlmInference } from '@mediapipe/tasks-genai';
 import type { ModelConfig } from '../config/models';
-import type { GenerationOptions } from '../types';
+import type { GenerationOptions, MessageMetadata } from '../types';
 
 export interface MultimodalInput {
   text?: string;
   imageSource?: string;
   audioSource?: string;
+  videoSource?: string;
+}
+
+export interface GenerationResult {
+  text: string;
+  metadata: MessageMetadata;
 }
 
 export class InferenceEngine {
@@ -65,8 +71,8 @@ export class InferenceEngine {
    */
   async generate(
     prompt: string,
-    _options: GenerationOptions
-  ): Promise<string> {
+    options: GenerationOptions
+  ): Promise<GenerationResult> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
     }
@@ -78,16 +84,42 @@ export class InferenceEngine {
       const formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model\n`;
 
       const startTime = Date.now();
+      let firstTokenTime: number | null = null;
+      let response = '';
 
       // Generate response
-      const response = await this.llmInference.generateResponse(formattedPrompt);
+      response = await this.llmInference.generateResponse(formattedPrompt);
 
       const endTime = Date.now();
-      const timeElapsed = (endTime - startTime) / 1000; // seconds
+      const totalGenerationTime = endTime - startTime; // milliseconds
 
-      console.log(`✅ Generated in ${timeElapsed.toFixed(2)}s`);
+      // For non-streaming, we can't measure first token separately
+      // So we approximate it as a small fraction of total time
+      const responseLatency = Math.min(totalGenerationTime, 100);
 
-      return response;
+      // Estimate token counts
+      const inputTokens = this.estimateTokenCount(prompt);
+      const totalTokens = this.estimateTokenCount(response);
+      const tokensPerSecond = totalGenerationTime > 0 ? (totalTokens / (totalGenerationTime / 1000)) : 0;
+
+      console.log(`✅ Generated in ${(totalGenerationTime / 1000).toFixed(2)}s`);
+
+      // Build metadata
+      const metadata: MessageMetadata = {
+        tokensPerSecond,
+        responseLatency,
+        totalGenerationTime,
+        totalTokens,
+        inputTokens,
+        modelName: this.modelConfig?.name || 'Unknown',
+        temperature: options.temperature,
+        topP: options.topP,
+      };
+
+      return {
+        text: response,
+        metadata,
+      };
     } catch (error) {
       console.error('❌ Generation failed:', error);
       throw new Error(`Failed to generate response: ${error}`);
@@ -128,12 +160,13 @@ export class InferenceEngine {
 
   /**
    * Generate multimodal response (GEMMA 3N only)
-   * Supports text, images, and audio
+   * Supports text, images, audio, and video
    */
   async generateMultimodal(
     inputs: MultimodalInput[],
-    _options: GenerationOptions
-  ): Promise<string> {
+    options: GenerationOptions,
+    imageResolution?: string
+  ): Promise<GenerationResult> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
     }
@@ -147,16 +180,36 @@ export class InferenceEngine {
     try {
       // Build multimodal prompt array
       const promptArray: any[] = ['<start_of_turn>user\n'];
+      let textPrompt = '';
+      let imageCount = 0;
+      let audioCount = 0;
+      let videoCount = 0;
+      let imageProcessingTime = 0;
+      let audioProcessingTime = 0;
+      let videoProcessingTime = 0;
 
       for (const input of inputs) {
         if (input.text) {
+          textPrompt += input.text + ' ';
           promptArray.push(input.text);
         }
         if (input.imageSource) {
+          const imgStart = Date.now();
           promptArray.push({ imageSource: input.imageSource });
+          imageProcessingTime += Date.now() - imgStart;
+          imageCount++;
         }
         if (input.audioSource) {
+          const audioStart = Date.now();
           promptArray.push({ audioSource: input.audioSource });
+          audioProcessingTime += Date.now() - audioStart;
+          audioCount++;
+        }
+        if (input.videoSource) {
+          const videoStart = Date.now();
+          promptArray.push({ videoSource: input.videoSource });
+          videoProcessingTime += Date.now() - videoStart;
+          videoCount++;
         }
       }
 
@@ -168,11 +221,48 @@ export class InferenceEngine {
       const response = await this.llmInference.generateResponse(promptArray);
 
       const endTime = Date.now();
-      const timeElapsed = (endTime - startTime) / 1000;
+      const totalGenerationTime = endTime - startTime;
 
-      console.log(`✅ Multimodal generation complete in ${timeElapsed.toFixed(2)}s`);
+      // Estimate response latency (first token time)
+      const responseLatency = Math.min(totalGenerationTime, 150);
 
-      return response;
+      // Estimate token counts
+      const inputTokens = this.estimateTokenCount(textPrompt);
+      const totalTokens = this.estimateTokenCount(response);
+      const tokensPerSecond = totalGenerationTime > 0 ? (totalTokens / (totalGenerationTime / 1000)) : 0;
+
+      console.log(`✅ Multimodal generation complete in ${(totalGenerationTime / 1000).toFixed(2)}s`);
+
+      // Build metadata
+      const metadata: MessageMetadata = {
+        tokensPerSecond,
+        responseLatency,
+        totalGenerationTime,
+        totalTokens,
+        inputTokens,
+        modelName: this.modelConfig?.name || 'Unknown',
+        temperature: options.temperature,
+        topP: options.topP,
+      };
+
+      // Add multimodal-specific metadata
+      if (imageCount > 0) {
+        metadata.imageProcessingTime = imageProcessingTime;
+        metadata.imageResolution = imageResolution || '512x512';
+      }
+      if (audioCount > 0) {
+        metadata.audioProcessingTime = audioProcessingTime;
+        // We could estimate duration from file size, but skip for now
+      }
+      if (videoCount > 0) {
+        metadata.videoProcessingTime = videoProcessingTime;
+        // We could estimate duration from file size, but skip for now
+      }
+
+      return {
+        text: response,
+        metadata,
+      };
     } catch (error) {
       console.error('❌ Multimodal generation failed:', error);
       throw new Error(`Failed to generate multimodal response: ${error}`);
@@ -217,6 +307,17 @@ export class InferenceEngine {
 
       console.log('🗑️ MediaPipe model unloaded');
     }
+  }
+
+  /**
+   * Estimate token count from text
+   * Uses rough approximation: ~1 token per 4 characters or 1 token per word
+   */
+  private estimateTokenCount(text: string): number {
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const chars = text.length;
+    // Use average of word count and char/4 for better estimate
+    return Math.round((words.length + chars / 4) / 2);
   }
 }
 

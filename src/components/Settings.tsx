@@ -5,8 +5,11 @@
  */
 
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { getAvailableModels, type ModelId } from '../config/models';
+import { getAllLanguages, AUDIO_TRANSCRIPTION_LANGUAGES } from '../config/languages';
+import { voiceService } from '../services/VoiceService';
 
 interface Props {
   onClose: () => void;
@@ -16,6 +19,22 @@ export function Settings({ onClose }: Props) {
   const { currentModelId, setCurrentModel, settings, updateSettings } = useStore();
   const models = getAvailableModels();
   const currentModel = models.find(m => m.id === currentModelId);
+  const languages = getAllLanguages();
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Load available TTS voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = voiceService.getAvailableVoices();
+      setAvailableVoices(voices);
+    };
+
+    // Voices might not be loaded immediately
+    loadVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -269,6 +288,367 @@ export function Settings({ onClose }: Props) {
                   <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
                 </button>
               </div>
+            </div>
+          </section>
+
+          {/* Metadata Display */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Response Metadata</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Control what information is displayed below AI responses
+            </p>
+
+            <div className="space-y-4">
+              {/* Performance Metrics */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Performance Metrics</label>
+                  <p className="text-xs text-gray-600 mt-1">Speed (tok/s), latency, generation time</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    metadata: { ...settings.metadata, showPerformance: !settings.metadata.showPerformance }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.metadata.showPerformance ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.metadata.showPerformance ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Model Info */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Model Information</label>
+                  <p className="text-xs text-gray-600 mt-1">Model name, temperature, top-P values</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    metadata: { ...settings.metadata, showModelInfo: !settings.metadata.showModelInfo }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.metadata.showModelInfo ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.metadata.showModelInfo ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Token Counts */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Token Counts</label>
+                  <p className="text-xs text-gray-600 mt-1">Input and output token counts</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    metadata: { ...settings.metadata, showTokenCounts: !settings.metadata.showTokenCounts }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.metadata.showTokenCounts ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.metadata.showTokenCounts ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Multimodal Info */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Multimodal Processing</label>
+                  <p className="text-xs text-gray-600 mt-1">Processing times, resolutions, media durations</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    metadata: { ...settings.metadata, showMultimodalInfo: !settings.metadata.showMultimodalInfo }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.metadata.showMultimodalInfo ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.metadata.showMultimodalInfo ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Timestamp */}
+              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Timestamp</label>
+                  <p className="text-xs text-gray-600 mt-1">Show message timestamps</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    metadata: { ...settings.metadata, showTimestamp: !settings.metadata.showTimestamp }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.metadata.showTimestamp ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.metadata.showTimestamp ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Image Resolution */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Image Processing</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Choose default image resolution for multimodal models. Higher resolution = better quality but slower processing.
+            </p>
+
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                onClick={() => updateSettings({ imageResolution: '256' })}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  settings.imageResolution === '256'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-2xl mb-2">⚡</div>
+                  <div className="font-semibold text-sm mb-1">Fast</div>
+                  <div className="text-xs text-gray-600">256×256</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => updateSettings({ imageResolution: '512' })}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  settings.imageResolution === '512'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-2xl mb-2">⚖️</div>
+                  <div className="font-semibold text-sm mb-1">Balanced</div>
+                  <div className="text-xs text-gray-600">512×512</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => updateSettings({ imageResolution: '768' })}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  settings.imageResolution === '768'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🎯</div>
+                  <div className="font-semibold text-sm mb-1">Quality</div>
+                  <div className="text-xs text-gray-600">768×768</div>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-600">
+                <strong>Current setting: {settings.imageResolution}×{settings.imageResolution}</strong>
+                <br/>
+                This resolution will be used for processing images uploaded to multimodal models.
+              </p>
+            </div>
+          </section>
+
+          {/* Language & Voice */}
+          <section>
+            <h3 className="text-xl font-medium text-gray-900 mb-4">Language & Voice</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Configure language preferences and voice features for AI interactions
+            </p>
+
+            <div className="space-y-6">
+              {/* Response Language */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Default Response Language
+                </label>
+                <select
+                  value={settings.language.responseLanguage}
+                  onChange={(e) => updateSettings({
+                    language: { ...settings.language, responseLanguage: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {languages.map(lang => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.name} ({lang.nativeName}) {lang.multimodal ? '🎨' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Language for AI text responses · 🎨 = Multimodal supported
+                </p>
+              </div>
+
+              {/* Audio Transcription Language */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Audio Transcription Language
+                </label>
+                <select
+                  value={settings.language.audioTranscriptionLanguage}
+                  onChange={(e) => updateSettings({
+                    language: { ...settings.language, audioTranscriptionLanguage: e.target.value }
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {AUDIO_TRANSCRIPTION_LANGUAGES.map(lang => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Language for voice input transcription
+                </p>
+              </div>
+
+              {/* Voice Input Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Enable Voice Input</label>
+                  <p className="text-xs text-gray-600 mt-1">Speak your messages instead of typing</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    voice: { ...settings.voice, enableInput: !settings.voice.enableInput }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.voice.enableInput ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.voice.enableInput ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Voice Output Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Enable Voice Output</label>
+                  <p className="text-xs text-gray-600 mt-1">AI can read responses aloud</p>
+                </div>
+                <button
+                  onClick={() => updateSettings({
+                    voice: { ...settings.voice, enableOutput: !settings.voice.enableOutput }
+                  })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    settings.voice.enableOutput ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.voice.enableOutput ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Voice Output Settings (only show if enabled) */}
+              {settings.voice.enableOutput && (
+                <div className="pl-4 border-l-2 border-blue-200 space-y-4">
+                  {/* Voice Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      Voice
+                    </label>
+                    <select
+                      value={settings.voice.outputVoice}
+                      onChange={(e) => updateSettings({
+                        voice: { ...settings.voice, outputVoice: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option value="">Browser Default</option>
+                      {availableVoices.map((voice, idx) => (
+                        <option key={idx} value={voice.name}>
+                          {voice.name} ({voice.lang})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Speech Rate */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-900">
+                        Speech Rate
+                      </label>
+                      <span className="text-sm text-gray-600">
+                        {settings.voice.outputRate.toFixed(1)}x
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={settings.voice.outputRate}
+                      onChange={(e) => updateSettings({
+                        voice: { ...settings.voice, outputRate: parseFloat(e.target.value) }
+                      })}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      0.5x = Slow · 1.0x = Normal · 2.0x = Fast
+                    </p>
+                  </div>
+
+                  {/* Speech Pitch */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-gray-900">
+                        Speech Pitch
+                      </label>
+                      <span className="text-sm text-gray-600">
+                        {settings.voice.outputPitch.toFixed(1)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={settings.voice.outputPitch}
+                      onChange={(e) => updateSettings({
+                        voice: { ...settings.voice, outputPitch: parseFloat(e.target.value) }
+                      })}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      0.5 = Low · 1.0 = Normal · 2.0 = High
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
