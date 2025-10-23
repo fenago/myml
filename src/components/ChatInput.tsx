@@ -29,6 +29,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
   const [isFocused, setIsFocused] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [audioFiles, setAudioFiles] = useState<File[]>([]);
+  const [audioFileDurations, setAudioFileDurations] = useState<number[]>([]);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -52,6 +53,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
       setInput('');
       setImageFiles([]);
       setAudioFiles([]);
+      setAudioFileDurations([]);
       setVideoFiles([]);
       setShowAttachMenu(false);
       if (textareaRef.current) {
@@ -66,9 +68,28 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
     setShowAttachMenu(false);
   };
 
-  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Calculate audio duration
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.addEventListener('loadedmetadata', () => {
+        resolve(audio.duration);
+      });
+      audio.addEventListener('error', () => {
+        resolve(0); // Return 0 if duration can't be determined
+      });
+      audio.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
+    // Calculate durations for all audio files
+    const durations = await Promise.all(files.map(file => getAudioDuration(file)));
+
     setAudioFiles(prev => [...prev, ...files]);
+    setAudioFileDurations(prev => [...prev, ...durations]);
     setShowAttachMenu(false);
   };
 
@@ -84,6 +105,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
   const removeAudio = (index: number) => {
     setAudioFiles(prev => prev.filter((_, i) => i !== index));
+    setAudioFileDurations(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeVideo = (index: number) => {
@@ -114,7 +136,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -122,16 +144,34 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
 
     const files = Array.from(e.dataTransfer.files);
 
-    // Categorize files by type
+    // Separate files by type
+    const imageFilesToAdd: File[] = [];
+    const audioFilesToAdd: File[] = [];
+    const videoFilesToAdd: File[] = [];
+
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
-        setImageFiles(prev => [...prev, file]);
+        imageFilesToAdd.push(file);
       } else if (file.type.startsWith('audio/')) {
-        setAudioFiles(prev => [...prev, file]);
+        audioFilesToAdd.push(file);
       } else if (file.type.startsWith('video/')) {
-        setVideoFiles(prev => [...prev, file]);
+        videoFilesToAdd.push(file);
       }
     });
+
+    // Add files with duration calculation for audio
+    if (imageFilesToAdd.length > 0) {
+      setImageFiles(prev => [...prev, ...imageFilesToAdd]);
+    }
+    if (audioFilesToAdd.length > 0) {
+      // Calculate durations for audio files
+      const durations = await Promise.all(audioFilesToAdd.map(file => getAudioDuration(file)));
+      setAudioFiles(prev => [...prev, ...audioFilesToAdd]);
+      setAudioFileDurations(prev => [...prev, ...durations]);
+    }
+    if (videoFilesToAdd.length > 0) {
+      setVideoFiles(prev => [...prev, ...videoFilesToAdd]);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -258,20 +298,30 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
               </button>
             </div>
           ))}
-          {audioFiles.map((file, index) => (
-            <div key={`audio-${index}`} className="relative group px-3 py-2 bg-muted rounded-lg border border-border flex items-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-              <span className="text-xs">{file.name}</span>
-              <button
-                onClick={() => removeAudio(index)}
-                className="ml-2 w-4 h-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {audioFiles.map((file, index) => {
+            const duration = audioFileDurations[index] || 0;
+            const minutes = Math.floor(duration / 60);
+            const seconds = Math.floor(duration % 60);
+            const durationText = duration > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : 'Loading...';
+
+            return (
+              <div key={`audio-${index}`} className="relative group px-3 py-2 bg-muted rounded-lg border border-border flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">{durationText}</p>
+                </div>
+                <button
+                  onClick={() => removeAudio(index)}
+                  className="w-4 h-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
