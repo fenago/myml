@@ -31,6 +31,7 @@ interface AppState {
   setLoadProgress: (progress: ModelLoadProgress | null) => void;
 
   addMessage: (conversationId: string, message: Message) => void;
+  updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>) => void;
   createConversation: (modelId: ModelId) => string;
   deleteConversation: (id: string) => void;
   setCurrentConversation: (id: string | null) => void;
@@ -106,6 +107,20 @@ export const useStore = create<AppState>((set) => ({
         [conversationId]: {
           ...state.conversations[conversationId],
           messages: [...state.conversations[conversationId].messages, message],
+          updatedAt: new Date(),
+        },
+      },
+    })),
+
+  updateMessage: (conversationId, messageId, updates) =>
+    set((state) => ({
+      conversations: {
+        ...state.conversations,
+        [conversationId]: {
+          ...state.conversations[conversationId],
+          messages: state.conversations[conversationId].messages.map((msg) =>
+            msg.id === messageId ? { ...msg, ...updates } : msg
+          ),
           updatedAt: new Date(),
         },
       },

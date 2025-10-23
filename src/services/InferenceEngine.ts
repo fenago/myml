@@ -126,12 +126,12 @@ export class InferenceEngine {
   }
 
   /**
-   * Generate streaming response
+   * Generate streaming response with metadata
    */
   async generateStreaming(
     prompt: string,
-    _options: GenerationOptions,
-    onToken: (token: string) => void
+    options: GenerationOptions,
+    onToken: (token: string, isDone: boolean, metadata?: MessageMetadata) => void
   ): Promise<void> {
     if (!this.llmInference) {
       throw new Error('Model not initialized');
@@ -142,11 +142,43 @@ export class InferenceEngine {
     try {
       const formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model\n`;
 
+      const startTime = Date.now();
+      let firstTokenTime: number | null = null;
+      let totalTokens = 0;
+
       this.llmInference.generateResponse(
         formattedPrompt,
         (partialResult: string, done: boolean) => {
-          onToken(partialResult);
+          // Track first token time
+          if (firstTokenTime === null && partialResult.length > 0) {
+            firstTokenTime = Date.now();
+          }
+
+          totalTokens = this.estimateTokenCount(partialResult);
+
+          // Send token update
+          onToken(partialResult, done);
+
           if (done) {
+            const endTime = Date.now();
+            const totalGenerationTime = endTime - startTime;
+            const responseLatency = firstTokenTime ? firstTokenTime - startTime : 0;
+            const tokensPerSecond = totalGenerationTime > 0 ? (totalTokens / (totalGenerationTime / 1000)) : 0;
+
+            // Build final metadata
+            const metadata: MessageMetadata = {
+              tokensPerSecond,
+              responseLatency,
+              totalGenerationTime,
+              totalTokens,
+              inputTokens: this.estimateTokenCount(prompt),
+              modelName: this.modelConfig?.name || 'Unknown',
+              temperature: options.temperature,
+              topP: options.topP,
+            };
+
+            // Send final update with metadata
+            onToken(partialResult, true, metadata);
             console.log('✅ Streaming complete');
           }
         }

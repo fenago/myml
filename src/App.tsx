@@ -32,6 +32,7 @@ export function App() {
     currentConversationId,
     createConversation,
     addMessage,
+    updateMessage,
     setIsGenerating,
     settings,
   } = useStore();
@@ -194,24 +195,36 @@ export function App() {
 
         addMessage(currentConversationId, assistantMessage);
       } else {
-        // Text-only generation with metadata
-        const result = await inferenceEngine.generate(text || '', {
-          maxTokens: 512,
-          temperature: 0.8,
-          topP: 0.9,
-          streamTokens: false,
-        });
+        // Text-only generation with streaming
+        const assistantMessageId = crypto.randomUUID();
 
-        // Add assistant message with metadata
+        // Add empty assistant message that will be updated as tokens stream in
         const assistantMessage: Message = {
-          id: crypto.randomUUID(),
+          id: assistantMessageId,
           role: 'assistant',
-          content: result.text,
+          content: '',
           timestamp: new Date(),
-          metadata: result.metadata,
         };
 
         addMessage(currentConversationId, assistantMessage);
+
+        // Generate streaming response
+        await inferenceEngine.generateStreaming(
+          text || '',
+          {
+            maxTokens: 512,
+            temperature: 0.8,
+            topP: 0.9,
+            streamTokens: true,
+          },
+          (token: string, isDone: boolean, metadata?: any) => {
+            // Update message content as tokens stream in
+            updateMessage(currentConversationId, assistantMessageId, {
+              content: token,
+              ...(isDone && metadata ? { metadata } : {}),
+            });
+          }
+        );
       }
     } catch (error) {
       console.error('Generation error:', error);

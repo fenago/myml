@@ -10,6 +10,10 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { voiceService } from '../services/VoiceService';
 import type { Message } from '../types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 
 interface Props {
   message: Message;
@@ -169,9 +173,46 @@ export function ChatMessage({ message }: Props) {
               }
             `}
           >
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
+            {isUser ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {message.content}
+              </p>
+            ) : (
+              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    // Custom styling for code blocks
+                    code: ({node, inline, className, children, ...props}: any) => {
+                      return inline ? (
+                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                          {children}
+                        </code>
+                      ) : (
+                        <code className={`${className} text-xs`} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                    // Custom styling for pre blocks
+                    pre: ({children}: any) => (
+                      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2">
+                        {children}
+                      </pre>
+                    ),
+                    // Custom styling for links
+                    a: ({children, href}: any) => (
+                      <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
 
           {/* Compact Metadata */}
