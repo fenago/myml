@@ -156,32 +156,30 @@ export function ChatInterface({ onSendMessage }: Props) {
             </div>
           )}
 
-          {/* Context Indicator */}
-          {currentConversation && currentConversation.messages.length > 0 && (
-            <div
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50"
-              title={`${tokensUsed.toLocaleString()} / ${contextLimit.toLocaleString()} tokens (${tokenPercentage.toFixed(1)}%)`}
-            >
-              <span className="text-xs text-muted-foreground">Context:</span>
-              <div className="w-24 h-2 bg-background rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    tokenPercentage < 50
-                      ? 'bg-green-500'
-                      : tokenPercentage < 75
-                      ? 'bg-yellow-500'
-                      : tokenPercentage < 90
-                      ? 'bg-orange-500'
-                      : 'bg-red-500'
-                  }`}
-                  style={{ width: `${Math.min(tokenPercentage, 100)}%` }}
-                />
-              </div>
-              <span className="text-xs font-mono text-muted-foreground">
-                {(tokensUsed / 1000).toFixed(1)}K
-              </span>
+          {/* Context Indicator - Always visible */}
+          <div
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50"
+            title={`${tokensUsed.toLocaleString()} / ${contextLimit.toLocaleString()} tokens (${tokenPercentage.toFixed(1)}%)`}
+          >
+            <span className="text-xs text-muted-foreground hidden sm:inline">Context:</span>
+            <div className="w-16 sm:w-24 h-2 bg-background rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  tokenPercentage < 50
+                    ? 'bg-green-500'
+                    : tokenPercentage < 75
+                    ? 'bg-yellow-500'
+                    : tokenPercentage < 90
+                    ? 'bg-orange-500'
+                    : 'bg-red-500'
+                }`}
+                style={{ width: `${Math.min(tokenPercentage, 100)}%` }}
+              />
             </div>
-          )}
+            <span className="text-xs font-mono text-muted-foreground">
+              {(tokensUsed / 1000).toFixed(1)}K
+            </span>
+          </div>
 
           <button
             onClick={() => setShowSettings(true)}

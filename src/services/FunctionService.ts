@@ -258,16 +258,31 @@ export class FunctionService {
    * Extract location from user message
    */
   private extractLocation(message: string): string | null {
-    // Simple location extraction - looks for "in <location>" or "for <location>" patterns
+    // Improved location extraction with better patterns
     const patterns = [
-      /(?:in|for|at)\s+([a-zA-Z\s,]+?)(?:\?|\.|\s+today|\s+now|$)/i,
-      /weather\s+([a-zA-Z\s,]+?)(?:\?|\.|\s+today|\s+now|$)/i,
+      // "weather in <location>" or "weather for <location>"
+      /weather\s+(?:in|for|at)\s+([a-zA-Z\s,]+?)(?:\?|\.|\s*$)/i,
+      // "in <location>" or "for <location>" (after weather keywords)
+      /(?:weather|temperature|forecast).*?(?:in|for|at)\s+([a-zA-Z\s,]+?)(?:\?|\.|\s*$)/i,
+      // "<location> weather"
+      /^([a-zA-Z\s,]+?)\s+weather/i,
     ];
 
     for (const pattern of patterns) {
       const match = message.match(pattern);
       if (match && match[1]) {
-        return match[1].trim();
+        const location = match[1].trim();
+        // Filter out common words that aren't locations
+        const excludeWords = ['the', 'a', 'is', 'like', 'what', 'how', 'today', 'now', 'there'];
+        const cleanLocation = location
+          .split(/\s+/)
+          .filter(word => !excludeWords.includes(word.toLowerCase()))
+          .join(' ')
+          .trim();
+
+        if (cleanLocation) {
+          return cleanLocation;
+        }
       }
     }
 
