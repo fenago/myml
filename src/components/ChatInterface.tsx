@@ -13,6 +13,7 @@ import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { TextShimmer } from './TextShimmer';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { ContextIndicator } from './microinteractions/ContextIndicator';
 
 // Lazy load Settings for better initial load performance
 const Settings = lazy(() => import('./Settings').then(m => ({ default: m.Settings })));
@@ -76,7 +77,6 @@ export function ChatInterface({ onSendMessage }: Props) {
   const tokensUsed = currentConversation
     ? currentConversation.messages.reduce((total, msg) => total + estimateTokens(msg.content), 0)
     : 0;
-  const tokenPercentage = (tokensUsed / contextLimit) * 100;
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -345,30 +345,8 @@ export function ChatInterface({ onSendMessage }: Props) {
             </div>
           )}
 
-          {/* Context Indicator - Always visible */}
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50"
-            title={`${tokensUsed.toLocaleString()} / ${contextLimit.toLocaleString()} tokens (${tokenPercentage.toFixed(1)}%)`}
-          >
-            <span className="text-xs text-muted-foreground hidden sm:inline">Context:</span>
-            <div className="w-16 sm:w-24 h-2 bg-background rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 ${
-                  tokenPercentage < 50
-                    ? 'bg-green-500'
-                    : tokenPercentage < 75
-                    ? 'bg-yellow-500'
-                    : tokenPercentage < 90
-                    ? 'bg-orange-500'
-                    : 'bg-red-500'
-                }`}
-                style={{ width: `${Math.min(tokenPercentage, 100)}%` }}
-              />
-            </div>
-            <span className="text-xs font-mono text-muted-foreground">
-              {(tokensUsed / 1000).toFixed(1)}K
-            </span>
-          </div>
+          {/* Context Indicator - Enhanced with animations */}
+          <ContextIndicator tokensUsed={tokensUsed} contextLimit={contextLimit} />
 
           <button
             onClick={() => setShowSettings(true)}
