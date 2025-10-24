@@ -51,7 +51,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set) => ({
   // Initial state
-  currentModelId: 'gemma3nE2B', // Default to MADDY E2B (multimodal)
+  currentModelId: 'gemma3nE4B', // Default to JORDAN E4B (most advanced multimodal)
   modelStatus: 'not-loaded',
   loadProgress: null,
 
@@ -64,7 +64,7 @@ export const useStore = create<AppState>((set) => ({
   analyticsOpen: false,
 
   settings: {
-    defaultModel: 'gemma3nE2B',
+    defaultModel: 'gemma3nE4B',
     temperature: 0.8,
     maxTokens: 1000,
     topP: 0.9,

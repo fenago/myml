@@ -80,7 +80,7 @@ export function App() {
   };
 
   /**
-   * Load model when starting chat
+   * Load model when starting chat (with automatic fallback to CAESAR)
    */
   const handleStartChat = async () => {
     console.log(`📋 Starting chat with model ID: ${currentModelId}`);
@@ -119,28 +119,41 @@ export function App() {
       // Show detailed error message
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      // Check if it's a memory allocation error
-      const isMemoryError = errorMessage.toLowerCase().includes('memory') ||
-                           errorMessage.toLowerCase().includes('array buffer');
-
-      if (isMemoryError) {
-        // Memory-specific error message
-        alert(
-          `❌ Failed to load model: ${config.name}\n\n` +
-          `${errorMessage}\n\n` +
-          `💡 Quick Fix:\n` +
-          `Try switching to CAESAR 270M (only 297 MB) which works reliably on all devices.\n\n` +
-          `You can change models by refreshing the page.`
-        );
-      } else {
-        // General error message
-        alert(
+      // Auto-fallback to CAESAR if not already using it
+      if (currentModelId !== 'gemma270m') {
+        const shouldFallback = window.confirm(
           `❌ Failed to load model: ${config.name}\n\n` +
           `Error: ${errorMessage}\n\n` +
-          `Please verify:\n` +
-          `1. The model file exists at: ${config.url}\n` +
-          `2. You have a stable internet connection\n` +
-          `3. You have enough memory (need ${(config.size / 1024 / 1024 / 1024).toFixed(1)} GB)`
+          `\n📱 Auto-Fallback Available\n\n` +
+          `Would you like to automatically switch to CAESAR 270M?\n\n` +
+          `✅ CAESAR Benefits:\n` +
+          `• Smaller size: 297 MB (vs ${(config.size / 1024 / 1024 / 1024).toFixed(1)} GB)\n` +
+          `• Works on all devices including mobile\n` +
+          `• Faster downloads and initialization\n` +
+          `• Text-only (no image/audio features)\n\n` +
+          `Click OK to try CAESAR, or Cancel to return to model selection.`
+        );
+
+        if (shouldFallback) {
+          console.log('🔄 Auto-falling back to CAESAR 270M...');
+
+          // Switch to CAESAR and try again
+          const { setCurrentModel } = useStore.getState();
+          setCurrentModel('gemma270m');
+
+          // Retry with CAESAR
+          return handleStartChat();
+        }
+      } else {
+        // Already using CAESAR and it failed
+        alert(
+          `❌ Failed to load CAESAR 270M model\n\n` +
+          `Error: ${errorMessage}\n\n` +
+          `This is unusual as CAESAR is our smallest model.\n\n` +
+          `Please check:\n` +
+          `1. Your internet connection\n` +
+          `2. Browser console for detailed errors\n` +
+          `3. Try refreshing the page`
         );
       }
     }
