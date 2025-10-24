@@ -72,7 +72,7 @@ export class InferenceEngine {
    */
   private getVerbosityInstruction(verbosity: 'concise' | 'balanced' | 'detailed'): string {
     const instructions = {
-      concise: 'Be brief and concise. Provide direct answers without unnecessary elaboration. Focus on essential information only.',
+      concise: 'Provide direct, informative answers. Answer questions fully with essential facts and information. Be brief but complete - avoid unnecessary fluff or repetition.',
       balanced: 'Provide clear explanations with moderate detail. Balance thoroughness with brevity.',
       detailed: 'Provide comprehensive and thorough explanations with examples when helpful. Be detailed in your responses.'
     };

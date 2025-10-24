@@ -214,8 +214,8 @@ export function ChatInterface({ onSendMessage }: Props) {
     // Remove all messages after the edited one
     truncateMessagesAfter(currentConversationId, messageIndex);
 
-    // Send the edited message to get new response
-    onSendMessage({ text: newContent });
+    // Send the edited message to get new response (skip adding duplicate user message)
+    onSendMessage({ text: newContent, skipAddingUserMessage: true });
   };
 
   // Handle regenerate message

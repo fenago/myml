@@ -179,22 +179,26 @@ export function App() {
       translationMode,
       sourceLanguage,
       targetLanguage,
-      overrideLanguage
+      overrideLanguage,
+      skipAddingUserMessage
     } = input;
     const hasMultimodal =
       (imageFiles && imageFiles.length > 0) ||
       (audioFiles && audioFiles.length > 0) ||
       (videoFiles && videoFiles.length > 0);
 
-    // Add user message
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: text || '(Multimodal input)',
-      timestamp: new Date(),
-    };
+    // Add user message (skip if this is an edit/resend)
+    if (!skipAddingUserMessage) {
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: text || '(Multimodal input)',
+        timestamp: new Date(),
+      };
 
-    addMessage(currentConversationId, userMessage);
+      addMessage(currentConversationId, userMessage);
+    }
+
     setIsGenerating(true);
 
     try {

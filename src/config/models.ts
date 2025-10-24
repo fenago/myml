@@ -24,7 +24,7 @@ export const MODEL_CONFIG = {
       capabilities: ['text'] as const,
       contextWindow: 8000,
       parameters: 270_000_000,
-      icon: '✨',
+      icon: '⚡',
       recommended: {
         device: 'webgpu' as const,
         fallback: 'wasm' as const,
@@ -46,7 +46,7 @@ export const MODEL_CONFIG = {
       contextWindow: 32000,
       parameters: 1_910_000_000, // Effective
       totalParameters: 5_100_000_000,
-      icon: '🎯',
+      icon: '●',
       features: ['ple-caching', 'matformer', 'conditional-loading'],
       recommended: {
         device: 'webgpu' as const,
@@ -69,7 +69,7 @@ export const MODEL_CONFIG = {
       contextWindow: 32000,
       parameters: 2_100_000_000, // Effective
       totalParameters: 5_500_000_000,
-      icon: '🔮',
+      icon: '◆',
       features: ['ple-caching', 'matformer', 'conditional-loading', 'enhanced-vision'],
       recommended: {
         device: 'webgpu' as const,

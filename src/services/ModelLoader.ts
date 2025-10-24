@@ -86,6 +86,18 @@ export class ModelLoader {
     let loaded = 0;
     const startTime = Date.now();
 
+    // Emit initial progress to show 0% immediately
+    if (onProgress) {
+      onProgress({
+        modelId: config.id,
+        loaded: 0,
+        total,
+        percentage: 0,
+        speed: 0,
+        eta: 0,
+      });
+    }
+
     const reader = response.body!.getReader();
     const chunks: Uint8Array[] = [];
 

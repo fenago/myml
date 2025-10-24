@@ -37,6 +37,8 @@ export interface MultimodalInput {
   sourceLanguage?: string;
   targetLanguage?: string;
   overrideLanguage?: string; // Per-message language override
+  // Internal flag to skip adding user message (for edit/resend)
+  skipAddingUserMessage?: boolean;
 }
 
 interface Props {
