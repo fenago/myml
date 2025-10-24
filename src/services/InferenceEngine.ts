@@ -33,6 +33,33 @@ export class InferenceEngine {
   async initialize(config: ModelConfig): Promise<void> {
     console.log(`🚀 Initializing MediaPipe model: ${config.name}`);
 
+    // Check WebGPU availability FIRST
+    if (!navigator.gpu) {
+      const browserInfo = this.getBrowserInfo();
+      throw new Error(
+        `❌ WebGPU Not Available\n\n` +
+        `Your browser does not support WebGPU, which is required to run AI models.\n\n` +
+        `🔧 Solutions:\n\n` +
+        `${browserInfo.isSafari ?
+          '• Update Safari to version 18+ (requires macOS Sonoma 14.4+)\n' +
+          '• OR switch to Chrome 113+ or Edge 113+' :
+          browserInfo.isChrome || browserInfo.isEdge ?
+          '• Update Chrome/Edge to version 113 or later\n' +
+          '• Make sure hardware acceleration is enabled:\n' +
+          '  Settings → System → Use hardware acceleration when available' :
+          browserInfo.isFirefox ?
+          '• Firefox does not fully support WebGPU yet\n' +
+          '• Please use Chrome 113+, Edge 113+, or Safari 18+' :
+          '• Please use a modern browser:\n' +
+          '  - Chrome 113+ or Edge 113+\n' +
+          '  - Safari 18+ (macOS Sonoma 14.4+)'
+        }\n\n` +
+        `💡 Current Browser: ${browserInfo.name} ${browserInfo.version || 'Unknown'}\n` +
+        `💡 Recommended: Chrome 113+, Edge 113+, or Safari 18+\n\n` +
+        `📚 More info: https://caniuse.com/webgpu`
+      );
+    }
+
     try {
       // Load MediaPipe GenAI library
       this.genAi = await FilesetResolver.forGenAiTasks(
@@ -501,6 +528,46 @@ export class InferenceEngine {
 
       console.log('🗑️ MediaPipe model unloaded');
     }
+  }
+
+  /**
+   * Get browser information for WebGPU compatibility messaging
+   */
+  private getBrowserInfo(): {
+    name: string;
+    version: string | null;
+    isSafari: boolean;
+    isChrome: boolean;
+    isEdge: boolean;
+    isFirefox: boolean;
+  } {
+    const ua = navigator.userAgent;
+    let name = 'Unknown';
+    let version: string | null = null;
+    let isSafari = false;
+    let isChrome = false;
+    let isEdge = false;
+    let isFirefox = false;
+
+    if (ua.includes('Edg/')) {
+      name = 'Edge';
+      isEdge = true;
+      version = ua.match(/Edg\/(\d+)/)?.[1] || null;
+    } else if (ua.includes('Chrome/') && !ua.includes('Edg/')) {
+      name = 'Chrome';
+      isChrome = true;
+      version = ua.match(/Chrome\/(\d+)/)?.[1] || null;
+    } else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+      name = 'Safari';
+      isSafari = true;
+      version = ua.match(/Version\/(\d+)/)?.[1] || null;
+    } else if (ua.includes('Firefox/')) {
+      name = 'Firefox';
+      isFirefox = true;
+      version = ua.match(/Firefox\/(\d+)/)?.[1] || null;
+    }
+
+    return { name, version, isSafari, isChrome, isEdge, isFirefox };
   }
 
   /**
