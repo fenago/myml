@@ -374,7 +374,7 @@ export function ChatInterface({ onSendMessage }: Props) {
           ) : (
             <h1 className="text-xl font-semibold text-foreground">MyML</h1>
           )}
-          <span className="text-xs text-muted-foreground/50">v0.11.5</span>
+          <span className="text-xs text-muted-foreground/50">v0.11.6</span>
           <div className="px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground flex items-center gap-2">
             <span>{currentModel.icon}</span>
             <span>{currentModel.name}</span>
@@ -585,6 +585,19 @@ export function ChatInterface({ onSendMessage }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <span className="hidden sm:inline">Settings</span>
+            </button>
+          </Tooltip>
+
+          {/* Install App Button */}
+          <Tooltip content="Install MyML as an app on your device" position="bottom">
+            <button
+              onClick={() => setShowHelpGuide(true)}
+              className="text-sm text-purple-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span className="hidden lg:inline font-medium">Install App</span>
             </button>
           </Tooltip>
 

@@ -11,7 +11,7 @@ interface Props {
   onClose: () => void;
 }
 
-type TabType = 'features' | 'shortcuts' | 'tips';
+type TabType = 'features' | 'shortcuts' | 'tips' | 'install';
 
 export function HelpGuide({ onClose }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('features');
@@ -247,6 +247,7 @@ export function HelpGuide({ onClose }: Props) {
               { id: 'features' as TabType, label: 'Features', icon: '✨' },
               { id: 'shortcuts' as TabType, label: 'Shortcuts', icon: '⌨️' },
               { id: 'tips' as TabType, label: 'Tips & Tricks', icon: '💡' },
+              { id: 'install' as TabType, label: 'Install as App', icon: '📱' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -362,6 +363,179 @@ export function HelpGuide({ onClose }: Props) {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Install Tab */}
+            {activeTab === 'install' && (
+              <div className="space-y-6">
+                {/* What is PWA */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-2xl">📱</span>
+                    Install MyML as a Native App
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                    MyML is a Progressive Web App (PWA) that can be installed on your device and run like a native application - no app store needed!
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Works offline</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>100% private</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Faster launch</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Windows */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">🪟</span>
+                    Windows (Chrome, Edge)
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Method 1:</strong> Look for the install icon (⊕) in the address bar → Click "Install MyML"
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Method 2:</strong> Click browser menu (⋮) → "Install MyML" or "Apps" → "Install this site as an app"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app will appear in your Start Menu and Desktop
+                    </p>
+                  </div>
+                </div>
+
+                {/* macOS */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">🍎</span>
+                    macOS (Safari, Chrome, Edge)
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Safari:</strong> Click Share button → "Add to Dock"
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Chrome/Edge:</strong> Look for install icon (⊕) in address bar or Menu → "Install MyML"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app will appear in your Dock and Applications folder
+                    </p>
+                  </div>
+                </div>
+
+                {/* Linux */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">🐧</span>
+                    Linux (Chrome, Firefox, Edge)
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Chrome/Edge:</strong> Look for install icon (⊕) in address bar → "Install MyML"
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Firefox:</strong> Click menu (☰) → "Install MyML"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app will appear in your application launcher
+                    </p>
+                  </div>
+                </div>
+
+                {/* iOS */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">📱</span>
+                    iOS (iPhone & iPad)
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Safari only:</strong> Tap Share button (square with arrow) → "Add to Home Screen" → "Add"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app icon will appear on your home screen and run full-screen like a native iOS app
+                    </p>
+                  </div>
+                </div>
+
+                {/* Android */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">🤖</span>
+                    Android
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Chrome:</strong> Tap "Install app" banner at bottom or Menu (⋮) → "Install app"
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Firefox:</strong> Tap "Add to Home Screen" when prompted or Menu → "Install"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app will appear in your app drawer and run like a native Android app
+                    </p>
+                  </div>
+                </div>
+
+                {/* ChromeOS */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="text-xl">💻</span>
+                    ChromeOS
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Click install icon (⊕) in address bar or Menu (⋮) → "Install MyML"
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      The app will appear in your app launcher shelf
+                    </p>
+                  </div>
+                </div>
+
+                {/* Benefits */}
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    ✨ Benefits of Installing
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <span><strong>Standalone window</strong> - No browser UI, looks like a native app</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <span><strong>Faster launch</strong> - Cached files load instantly</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <span><strong>Works offline</strong> - Service worker caches everything</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <span><strong>App shortcuts</strong> - Right-click icon for quick actions</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                      <span><strong>Still 100% private</strong> - All AI runs locally on your device</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             )}
           </div>

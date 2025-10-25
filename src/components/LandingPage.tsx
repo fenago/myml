@@ -185,7 +185,7 @@ export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
         className="mt-16 text-center text-sm text-gray-500"
       >
         <p className="mt-4">Powered by GEMMA models · MediaPipe · WebGPU</p>
-        <p className="mt-2 text-xs text-gray-400">v0.11.5</p>
+        <p className="mt-2 text-xs text-gray-400">v0.11.6</p>
       </motion.footer>
       </div>
     </div>
