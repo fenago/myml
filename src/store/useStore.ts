@@ -145,7 +145,7 @@ export const useStore = create<AppState>((set) => ({
       ], // All 11 built-in functions enabled by default (no API keys required!)
     },
     responseStyle: {
-      verbosity: 'concise', // Concise by default (was too verbose before)
+      verbosity: 'balanced', // Balanced verbosity for better responses
     },
     systemPrompt: {
       enabled: false, // Disabled by default - uses model's default behavior

@@ -74,7 +74,7 @@ export class InferenceEngine {
         baseOptions: {
           modelAssetPath: config.url,
         },
-        maxTokens: 1000,
+        maxTokens: 2000,
         topK: 40,
         temperature: 0.8,
         randomSeed: 101,
