@@ -26,6 +26,7 @@ import { languageDetectionService } from './services/LanguageDetectionService';
 import { analyticsService } from './services/AnalyticsService';
 import { easterEggService } from './services/EasterEggService';
 import { gamificationService } from './services/GamificationService';
+import { SystemInfoService } from './services/SystemInfoService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -52,6 +53,7 @@ export function App() {
     settings,
     analyticsOpen,
     toggleAnalytics,
+    setSystemInfo,
   } = useStore();
 
   /**
@@ -71,6 +73,19 @@ export function App() {
       });
     }
   }, []);
+
+  /**
+   * Collect system information on app initialization
+   */
+  useEffect(() => {
+    const collectSystemInfo = async () => {
+      const info = await SystemInfoService.collect();
+      setSystemInfo(info);
+      console.log('✅ System info collected and stored');
+    };
+
+    collectSystemInfo();
+  }, [setSystemInfo]);
 
   /**
    * Reset to landing page

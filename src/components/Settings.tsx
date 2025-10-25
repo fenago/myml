@@ -17,6 +17,7 @@ import { SystemPromptEditor } from './SystemPromptEditor';
 import { StructuredOutputEditor } from './StructuredOutputEditor';
 import { SafetySettingsEditor } from './SafetySettingsEditor';
 import { languageDetectionService } from '../services/LanguageDetectionService';
+import { SystemInfoService } from '../services/SystemInfoService';
 
 interface Props {
   onClose: () => void;
@@ -80,7 +81,7 @@ const TABS: Tab[] = [
 
 export function Settings({ onClose }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('model');
-  const { currentModelId, setCurrentModel, settings, updateSettings } = useStore();
+  const { currentModelId, setCurrentModel, settings, updateSettings, systemInfo } = useStore();
   const models = getAvailableModels();
   const currentModel = models.find(m => m.id === currentModelId);
   const languages = getAllLanguages();
@@ -243,7 +244,7 @@ export function Settings({ onClose }: Props) {
                 )}
 
                 {activeTab === 'advanced' && (
-                  <AdvancedTab settings={settings} updateSettings={updateSettings} />
+                  <AdvancedTab settings={settings} updateSettings={updateSettings} systemInfo={systemInfo} />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -1535,7 +1536,7 @@ function FunctionsTab({ functions, settings, updateSettings, onCreateNew, onEdit
 }
 
 // Advanced Tab Component
-function AdvancedTab({ settings, updateSettings }: any) {
+function AdvancedTab({ settings, updateSettings, systemInfo }: any) {
   return (
     <div className="space-y-6">
       {/* Structured Output */}
@@ -1651,6 +1652,201 @@ function AdvancedTab({ settings, updateSettings }: any) {
           </ul>
         </div>
       </div>
+
+      {/* System Information */}
+      {systemInfo && (
+        <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">System Information</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Device and browser capabilities detected on app initialization
+          </p>
+
+          <div className="space-y-4">
+            {/* Device Summary */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Device
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Type:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {systemInfo.isMobile ? '📱 Mobile' : systemInfo.isTablet ? '📱 Tablet' : '💻 Desktop'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Platform:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.platform}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">OS:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {systemInfo.isIOS ? 'iOS' : systemInfo.isAndroid ? 'Android' : systemInfo.isMacOS ? 'macOS' : systemInfo.isWindows ? 'Windows' : systemInfo.isLinux ? 'Linux' : 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Touch:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.hasTouch ? '✅ Yes' : '❌ No'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Browser Info */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                Browser
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Name:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.browser}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Version:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.browserVersion}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Language:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.language}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Online:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.isOnline ? '✅ Yes' : '❌ Offline'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Display Info */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Display
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Screen:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.screenWidth} × {systemInfo.screenHeight}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Viewport:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.viewportWidth} × {systemInfo.viewportHeight}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Pixel Ratio:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.pixelRatio}x</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Dark Mode:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.prefersDarkMode ? '🌙 Preferred' : '☀️ Not Preferred'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Hardware Capabilities */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                Hardware
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">CPU Cores:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.cpuCores}</p>
+                </div>
+                {systemInfo.deviceMemory && (
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Memory:</span>
+                    <p className="font-medium text-gray-900 dark:text-white">{systemInfo.deviceMemory} GB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Browser Capabilities */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Capabilities
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasWebGPU ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasWebGPU ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">WebGPU</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasWebGL ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasWebGL ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">WebGL</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasServiceWorker ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasServiceWorker ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">Service Worker</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasIndexedDB ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasIndexedDB ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">IndexedDB</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasGeolocation ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasGeolocation ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">Geolocation</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={systemInfo.hasNotifications ? 'text-green-600' : 'text-gray-400'}>
+                    {systemInfo.hasNotifications ? '✅' : '❌'}
+                  </span>
+                  <span className="text-gray-700 dark:text-gray-300">Notifications</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Time & Locale */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Time & Locale
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Timezone:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.timezone}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Locale:</span>
+                  <p className="font-medium text-gray-900 dark:text-white">{systemInfo.locale}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Collection Info */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
+              Collected: {new Date(systemInfo.collectedAt).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

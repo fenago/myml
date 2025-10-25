@@ -374,7 +374,7 @@ export function ChatInterface({ onSendMessage }: Props) {
           ) : (
             <h1 className="text-xl font-semibold text-foreground">MyML</h1>
           )}
-          <span className="text-xs text-muted-foreground/50">v0.11.3</span>
+          <span className="text-xs text-muted-foreground/50">v0.11.4</span>
           <div className="px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground flex items-center gap-2">
             <span>{currentModel.icon}</span>
             <span>{currentModel.name}</span>

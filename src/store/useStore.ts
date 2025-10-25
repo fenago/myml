@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import type { Message, Conversation, AppSettings, ModelStatus, ModelLoadProgress } from '../types';
 import type { ModelId } from '../config/models';
+import type { SystemInfo } from '../services/SystemInfoService';
 
 interface AppState {
   // Model state
@@ -25,6 +26,9 @@ interface AppState {
 
   // Settings
   settings: AppSettings;
+
+  // System Info
+  systemInfo: SystemInfo | null;
 
   // Actions
   setCurrentModel: (modelId: ModelId) => void;
@@ -47,6 +51,7 @@ interface AppState {
   toggleAnalytics: () => void;
 
   updateSettings: (settings: Partial<AppSettings>) => void;
+  setSystemInfo: (info: SystemInfo) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -62,6 +67,8 @@ export const useStore = create<AppState>((set) => ({
   sidebarOpen: false,
   settingsOpen: false,
   analyticsOpen: false,
+
+  systemInfo: null, // Collected on app initialization
 
   settings: {
     defaultModel: 'gemma3nE2B',
@@ -329,4 +336,6 @@ export const useStore = create<AppState>((set) => ({
     set((state) => ({
       settings: { ...state.settings, ...newSettings },
     })),
+
+  setSystemInfo: (info) => set({ systemInfo: info }),
 }));
