@@ -749,7 +749,7 @@ export function App() {
         <Route
           path="/"
           element={
-            <div className="w-full h-screen overflow-hidden">
+            <div className={`w-full h-screen ${showChat ? 'overflow-hidden' : 'overflow-auto'}`}>
               {/* Landing Page */}
               {!showChat && modelStatus === 'not-loaded' && (
                 <LandingPage onStartChat={handleStartChat} />
