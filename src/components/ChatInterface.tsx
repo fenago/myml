@@ -37,7 +37,7 @@ interface Props {
 export function ChatInterface({ onSendMessage }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { currentConversationId, conversations, isGenerating, currentModelId, settings, createConversation, addMessage, updateMessage, truncateMessagesAfter, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage, toggleAnalytics } = useStore();
+  const { currentConversationId, conversations, isGenerating, currentModelId, settings, updateSettings, createConversation, addMessage, updateMessage, truncateMessagesAfter, setCurrentConversation, forkConversation, updateConversationSummary, togglePinMessage, toggleAnalytics } = useStore();
   const [showSettings, setShowSettings] = useState(false);
   const [showModelDashboard, setShowModelDashboard] = useState(false);
   const [showHelpGuide, setShowHelpGuide] = useState(false);
@@ -374,7 +374,7 @@ export function ChatInterface({ onSendMessage }: Props) {
           ) : (
             <h1 className="text-xl font-semibold text-foreground">MyML</h1>
           )}
-          <span className="text-xs text-muted-foreground/50">v0.11.4</span>
+          <span className="text-xs text-muted-foreground/50">v0.11.5</span>
           <div className="px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground flex items-center gap-2">
             <span>{currentModel.icon}</span>
             <span>{currentModel.name}</span>
@@ -512,6 +512,42 @@ export function ChatInterface({ onSendMessage }: Props) {
 
           {/* Context Indicator - Enhanced with animations */}
           <ContextIndicator tokensUsed={tokensUsed} contextLimit={contextLimit} />
+
+          {/* Voice Input Toggle */}
+          <Tooltip content={settings.voice.enableInput ? "Disable voice input" : "Enable voice input"} position="bottom">
+            <button
+              onClick={() => updateSettings({ voice: { ...settings.voice, enableInput: !settings.voice.enableInput } })}
+              className={`text-sm transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2 ${
+                settings.voice.enableInput ? 'text-blue-600 hover:text-blue-700' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+              <span className="hidden lg:inline">Voice Input</span>
+              {settings.voice.enableInput && (
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              )}
+            </button>
+          </Tooltip>
+
+          {/* Voice Output Toggle */}
+          <Tooltip content={settings.voice.enableOutput ? "Disable voice responses" : "Enable voice responses"} position="bottom">
+            <button
+              onClick={() => updateSettings({ voice: { ...settings.voice, enableOutput: !settings.voice.enableOutput } })}
+              className={`text-sm transition-colors px-3 py-1.5 rounded-lg hover:bg-muted flex items-center gap-2 ${
+                settings.voice.enableOutput ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+              <span className="hidden lg:inline">Voice Output</span>
+              {settings.voice.enableOutput && (
+                <span className="w-2 h-2 rounded-full bg-green-600"></span>
+              )}
+            </button>
+          </Tooltip>
 
           {/* Model Dashboard Button */}
           <Tooltip content="View model performance & memory stats" position="bottom">
