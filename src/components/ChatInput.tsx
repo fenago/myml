@@ -46,9 +46,10 @@ interface Props {
   disabled?: boolean;
   placeholder?: string;
   supportMultimodal?: boolean;
+  onNewChat?: () => void; // Callback for New Chat button
 }
 
-export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anything...', supportMultimodal = false }: Props) {
+export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anything...', supportMultimodal = false, onNewChat }: Props) {
   const [input, setInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -993,6 +994,20 @@ export function ChatInput({ onSend, disabled = false, placeholder = 'Ask anythin
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           />
+
+          {/* New Chat Button */}
+          {onNewChat && (
+            <Tooltip content="Start new conversation" shortcut="Ctrl+K" position="top">
+              <button
+                onClick={onNewChat}
+                className="p-3 rounded-xl flex-shrink-0 bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </Tooltip>
+          )}
 
           {/* Send Button */}
           <Tooltip content="Send message" shortcut="Enter" position="top">

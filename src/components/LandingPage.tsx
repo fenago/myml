@@ -9,10 +9,12 @@ import { useStore } from '../store/useStore';
 import { TextShimmer } from './TextShimmer';
 import { getAvailableModels } from '../config/models';
 import type { ModelId } from '../config/models';
+import { easterEggService } from '../services/EasterEggService';
 
 export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
   const { settings, currentModelId, setCurrentModel } = useStore();
   const availableModels = getAvailableModels();
+  const greeting = easterEggService.getTimeBasedGreeting();
 
   // Detect mobile and auto-select CAESAR (smaller, works on all devices)
   useEffect(() => {
@@ -84,11 +86,11 @@ export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
       >
         {settings.microinteractions.textShimmer ? (
           <TextShimmer as="h2" className="text-3xl md:text-4xl font-light mb-4" duration={3}>
-            What's on your mind?
+            {greeting}! What's on your mind?
           </TextShimmer>
         ) : (
           <h2 className="text-3xl md:text-4xl font-light text-gray-800 mb-4">
-            What's on your mind?
+            {greeting}! What's on your mind?
           </h2>
         )}
         <p className="text-base text-gray-600">
@@ -183,7 +185,7 @@ export function LandingPage({ onStartChat }: { onStartChat: () => void }) {
         className="mt-16 text-center text-sm text-gray-500"
       >
         <p className="mt-4">Powered by GEMMA models · MediaPipe · WebGPU</p>
-        <p className="mt-2 text-xs text-gray-400">v0.11.2</p>
+        <p className="mt-2 text-xs text-gray-400">v0.11.3</p>
       </motion.footer>
       </div>
     </div>

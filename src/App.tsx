@@ -24,6 +24,8 @@ import { functionService } from './services/FunctionService';
 import { videoProcessingService } from './services/VideoProcessingService';
 import { languageDetectionService } from './services/LanguageDetectionService';
 import { analyticsService } from './services/AnalyticsService';
+import { easterEggService } from './services/EasterEggService';
+import { gamificationService } from './services/GamificationService';
 import { getModelConfig } from './config/models';
 import type { Message } from './types';
 import type { MultimodalInput } from './components/ChatInput';
@@ -187,6 +189,11 @@ export function App() {
       (audioFiles && audioFiles.length > 0) ||
       (videoFiles && videoFiles.length > 0);
 
+    // Track feature discovery
+    if (imageFiles && imageFiles.length > 0) gamificationService.trackFeature('uploadImage');
+    if (audioFiles && audioFiles.length > 0) gamificationService.trackFeature('useVoice');
+    if (videoFiles && videoFiles.length > 0) gamificationService.trackFeature('useVideo');
+
     // Add user message (skip if this is an edit/resend)
     if (!skipAddingUserMessage) {
       const userMessage: Message = {
@@ -197,17 +204,41 @@ export function App() {
       };
 
       addMessage(currentConversationId, userMessage);
+
+      // Track message for gamification
+      gamificationService.trackMessage();
+
+      // Update streak
+      const streakAchievement = gamificationService.updateStreak();
+      if (streakAchievement) {
+        console.log('🔥', streakAchievement);
+      }
     }
 
     setIsGenerating(true);
 
     try {
+      // Check for model personality query (Easter egg)
+      if (text && easterEggService.isModelPersonalityQuery(text)) {
+        const personality = easterEggService.getModelPersonality(currentModelId);
+        const personalityMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: personality,
+          timestamp: new Date(),
+        };
+        addMessage(currentConversationId, personalityMessage);
+        setIsGenerating(false);
+        return;
+      }
+
       // Check for function calling
       if (settings.functions.enableFunctionCalling && text) {
         const functionCall = functionService.detectFunctionCall(text);
 
         if (functionCall) {
           console.log('🔧 Function call detected:', functionCall);
+          gamificationService.trackFeature('functionCalling');
 
           // Add function call message
           const functionCallMessage: Message = {
@@ -553,6 +584,11 @@ export function App() {
             result.metadata.inputTokens,
             result.metadata.totalTokens - result.metadata.inputTokens
           );
+
+          // Track gamification achievements
+          const outputTokens = result.metadata.totalTokens - result.metadata.inputTokens;
+          const achievements = gamificationService.trackTokens(currentModelId, outputTokens);
+          achievements.forEach(achievement => console.log('🏆', achievement));
         }
       } else {
         // Text-only generation with streaming
@@ -646,6 +682,11 @@ export function App() {
                 metadata.inputTokens,
                 metadata.totalTokens - metadata.inputTokens
               );
+
+              // Track gamification achievements
+              const outputTokens = metadata.totalTokens - metadata.inputTokens;
+              const achievements = gamificationService.trackTokens(currentModelId, outputTokens);
+              achievements.forEach(achievement => console.log('🏆', achievement));
             }
           },
           settings.responseStyle.verbosity, // Pass verbosity setting

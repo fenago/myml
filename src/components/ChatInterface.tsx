@@ -374,7 +374,7 @@ export function ChatInterface({ onSendMessage }: Props) {
           ) : (
             <h1 className="text-xl font-semibold text-foreground">MyML</h1>
           )}
-          <span className="text-xs text-muted-foreground/50">v0.11.2</span>
+          <span className="text-xs text-muted-foreground/50">v0.11.3</span>
           <div className="px-3 py-1 rounded-full bg-muted text-xs text-muted-foreground flex items-center gap-2">
             <span>{currentModel.icon}</span>
             <span>{currentModel.name}</span>
@@ -670,6 +670,10 @@ export function ChatInterface({ onSendMessage }: Props) {
 
       {/* Input Area */}
       <ChatInput
+        onNewChat={() => {
+          const newConvId = createConversation(currentModelId);
+          setCurrentConversation(newConvId);
+        }}
         onSend={(input) => {
           // Check for theme commands before sending
           if (input.text && handleThemeCommand(input.text)) {
